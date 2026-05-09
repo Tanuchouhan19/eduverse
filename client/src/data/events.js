@@ -5,8 +5,8 @@ export const events = [
     date: "2024-03-15",
     time: "10:00 AM - 6:00 PM",
     location: "Main Auditorium",
-    description: "The biggest technical festival of the year! Featuring coding competitions, robotics showcase, hackathons, and guest lectures from industry leaders. Don't miss the grand prize pool of ₹1 Lakh!",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500",
+    eventDescription: "The biggest technical festival of the year! Featuring coding competitions, robotics showcase, hackathons, and guest lectures from industry leaders. Don't miss the grand prize pool of ₹1 Lakh!",
+    eventImage: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500",
     comments: [
       { id: 1, username: "CodeMaster", text: "Can't wait for the hackathon!", timestamp: "2 hours ago" },
       { id: 2, username: "RoboEnthusiast", text: "The robotics showcase last year was amazing!", timestamp: "5 hours ago" }

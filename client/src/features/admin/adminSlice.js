@@ -7,12 +7,26 @@ const adminSlice = createSlice({
     allUsers: [],
     allEvents: [],
     allListings : [],
+    edit : {
+      event:{},
+      isEdit:false
+    },
     adminLoading: false,
     adminSuccess: false,
     adminError: false,
     adminErrorMessage: "",
   },
-  reducers: {},
+  reducers: {
+       editEvent : (state , action)=>{
+        return {
+          ...state,
+          edit : {
+            event: action.payload,
+            isEdit : true
+          }
+        }
+       }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getAllUsers.pending, (state, action) => {
@@ -108,10 +122,33 @@ const adminSlice = createSlice({
         state.adminError = true;
         state.adminErrorMessage = action.payload;
       })
+
+
+      //for Update Event
+      .addCase(updateEvent.pending, (state, action) => {
+        state.adminLoading = true;
+        state.adminSuccess = false;
+        state.adminError = false;
+      })
+      .addCase(updateEvent.fulfilled, (state, action) => {
+        state.adminLoading = false;
+        state.adminSuccess = true;
+        state.allUsers = state.allEvents.map(event => event._id === action.payload._id ? action.payload : event)
+        state.edit ={event:{}, isEdit : false}
+        state.adminError = false;
+      })
+      .addCase(updateEvent.rejected, (state, action) => {
+        state.adminLoading = false;
+        state.adminSuccess = false;
+        state.adminError = true;
+        state.adminErrorMessage = action.payload;
+      })
   },
 })
+// exporting the editEvent in given Reducer
+      export const {editEvent} = adminSlice.actions
 
-export default adminSlice.reducer;
+      export default adminSlice.reducer;
 
 // fetch all users : (ADMIN)
 export const getAllUsers = createAsyncThunk(
@@ -173,3 +210,27 @@ export const updateUser = createAsyncThunk("UPDATE/USERS/ADMIN",async (updatedUs
     }
   },
 );
+
+// ADD EVENT : (ADMIN)
+export const addEvent = createAsyncThunk("ADD/EVENT/ADMIN", async (FormData , thunkAPI) =>{
+   let token = thunkAPI.getState().auth.user.token;
+   try {
+        return await adminService.createEvent(FormData , token) 
+   } catch (error) {
+     const message = error.response.data.message
+     return thunkAPI.rejectWithValue(message);
+   }
+}
+)
+
+// Update EVENT : (ADMIN)
+export const updateEvent = createAsyncThunk("UPDATE/EVENT/ADMIN", async (updatedEvent , thunkAPI) =>{
+   let token = thunkAPI.getState().auth.user.token;
+   try {
+        return await adminService.update(updatedEvent , token) 
+   } catch (error) {
+     const message = error.response.data.message
+     return thunkAPI.rejectWithValue(message);
+   }
+}
+)

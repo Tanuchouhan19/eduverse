@@ -14,7 +14,7 @@ const getProducts = async (req, res) => {
 }
 
 const addProduct = async (req, res) => {
-    const { title, description, prize, isAvailable, itemImage } = req.body
+    const { title, description, prize, isAvailable, itemImage , category } = req.body
 
     if (!req.body || !title || !description || !prize || !itemImage) {
         res.status(400)
@@ -27,6 +27,7 @@ const addProduct = async (req, res) => {
         prize,
         isAvailable: true,
         itemImage,
+        category , 
         user: req.user._id
 
     })

@@ -13,26 +13,31 @@ import Admin from "./pages/Admin";
 import PrivateComponent from "./components/PrivateComponent";
 import NotFound from "./pages/NotFound";
 import PageNotFound from "./pages/PageNotFound";
+import EventDetail from "./pages/EventDetail";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const App = () => {
   return (
+    <ThemeProvider>
     <Router>
       <Navbar />
       <Routes>
-        <Route path="*" element={<PageNotFound/>} />
+        <Route path="*" element={<PageNotFound />} />
         <Route path="/" element={<Landing />} />
+        <Route path="marketplace/:pid" element={<ProductDetail />} />
+        <Route path="/event/:eid" element={<EventDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/auth" element={<PrivateComponent/>} >
+        <Route path="/auth" element={<PrivateComponent />}>
+          <Route path="myprofile" element={<MyProfile />} />
           <Route path="marketplace" element={<Marketplace />} />
-          <Route path="marketplace/:pid" element={<ProductDetail />} />
-          <Route path="events" element={< Events />} />
-          <Route path="myprofile" element={< MyProfile />} />
-          <Route path="admin" element={< Admin />} />
+        <Route path="events" element={<Events />} />
+          <Route path="admin" element={<Admin />} />
         </Route>
       </Routes>
       <ToastContainer />
     </Router>
+    </ThemeProvider>
   );
 };
 

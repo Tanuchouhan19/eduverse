@@ -3,6 +3,7 @@ require('dotenv').config()
 const colors = require('colors')
 const connectDB = require('./config/dbconfig')
 const errorHandler = require('./middleware/errorHandler')
+const cors = require('cors')  // ✅ Yeh line add karo!
 
 const PORT = process.env.PORT || 5000
 const app = express()
@@ -10,7 +11,10 @@ const app = express()
 // DB CONNECTION
 connectDB()
 
-
+app.use(cors({
+  origin: "http://localhost:5174",
+  credentials: true
+}))
 // body Parser
 app.use(express.json())
 app.use(express.urlencoded())

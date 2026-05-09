@@ -17,6 +17,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
+  editEvent,
   getAllEvents,
   getAllListings,
   getAllUsers,
@@ -25,6 +26,7 @@ import {
 } from "../features/admin/adminSlice";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";
+import AddEvent from "../components/AddEvent";
 
 const Admin = () => {
   const { user } = useSelector((state) => state.auth);
@@ -44,10 +46,21 @@ const Admin = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
 
+   const changeTab =(screen)=>{
+    setActiveTab("screen")
+   }
+
+   const handleEditEvent = (event) => {
+    dispatch(editEvent(event))
+    setActiveTab("add")
+   }
+     
+
   useEffect(() => {
-    if (!user.isAdmin) {
+    if (!user?.isAdmin) {
       navigate("/myprofile");
     }
+ 
 
     // fetch users
     dispatch(getAllUsers());
@@ -466,14 +479,7 @@ const Admin = () => {
                         </td>
                         <td className="px-6 py-4 text-sm flex gap-2">
                           <button
-                            onClick={() =>
-                              dispatch(
-                                updateUser({
-                                  _id: user._id,
-                                  isActive: user.isActive ? false : true,
-                                }),
-                              )
-                            }
+                            onClick={() => dispatch(updateUser({ _id: user._id,isActive: user.isActive ? false : true,}),)}
                             className={
                               user.isActive
                                 ? " cursor-pointer p-2 hover:bg-red-100 rounded-lg text-red-800 transition-colors bg-red-300"
@@ -491,48 +497,15 @@ const Admin = () => {
                 </table>
               </div>
             </div>
-          )}
+          )
+        }
 
 
+        
           {/* ADD EVENT  */}
-  {activeTab === "add" && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center mb-6 ">
-                <h3 className="text-3xl font-black  text-slate-900 ">
-                  Add Events
-                </h3>
-                
-                <button
-                  onClick={() => setShowUserModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all font-medium"
-                >
-                  <Plus size={20} /> 
-                </button>
-              </div>
-              <p>Add New Events Here</p>
-              
-              <form className="border border-gray-300 p-4 py-4 rounded-md">
-                <input className="border border-gray-300 rounded-md p-1.5 w-full "  type="text" placeholder="Enter Event Tittle"/>
-                <textarea className="border border-gray-300 rounded-md p-1.5 w-full " type = "text" placeholder="Enter Event Description"/>
-                <input className="border border-gray-300 rounded-md p-1.5 w-full " type="date" placeholder="Enter Event Date"></input>
-                <input className="border border-gray-300 rounded-md p-1.5 w-full " type="date" placeholder="Enter Event Image URL"></input>
-                <select className="border border-gray-300 rounded-md p-1.5 w-full ">
-                  <option value="upcoming">Upcoming</option>
-                  <option value="completed">completed</option>
-                  <option value="ongoing">ongoing</option>
-                  <option value="postponed">postponed</option>
-
-                </select>
-                <input className="border border-gray-300 rounded-md p-1.5 w-full " type="text" placeholder="Enter Event Location"/>
-                <input className="border border-gray-300 rounded-md p-1.5 w-full " type="number" placeholder="Enter Events Available Seats"/>
-                <input className="border border-gray-300 rounded-md p-1.5 w-full " type="text" placeholder="Enter Event Organizer"/>
-                <input className="border border-gray-300 rounded-md p-1.5 w-full " type="number" placeholder="Enter Event Ticket Price "/>
-
-
-              </form>
-              
-            </div>
-          )}
+      
+           {activeTab === "add" && (<AddEvent changeTab={changeTab}/>)}
+         
           {/* ------ */}
 
           {/* Listings Management Tab */}
@@ -627,24 +600,24 @@ const Admin = () => {
 
           {/* Events Management Tab */}
           {activeTab === "events" && (
-            <div className="space-y-4">
+            <div className="space-y-4 ">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">
                   Manage Events
                 </h3>
                 <button
-                  onClick={() => setShowEventModal(true)}
+                  onClick={() => setActiveTab("add")}
                   className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all font-medium"
                 >
                   <Plus size={20} /> Add Event
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 flex flex-wrap gap-10">
                 {allEvents.map((event) => (
                   <div
                     key={event._id}
-                    className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+                    className="flex items-center  justify-center flex-wrap bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
                   >
                     <button
                       onClick={() =>
@@ -652,11 +625,11 @@ const Admin = () => {
                           expandedEvent === event._id ? null : event.id,
                         )
                       }
-                      className="w-full p-6 flex items-start justify-between hover:bg-gray-50 transition-colors"
+                      className="w-80 p-6 flex items-start justify-between hover:bg-gray-50 transition-colors"
                     >
                       <div className="text-left">
                         <img
-                          className="w-full h-40 object-cover pb-2"
+                          className="w-100 h-40 object-cover pb-2"
                           src={event.eventImage}
                         ></img>
                         <h4 className="text-lg font-bold text-gray-800">
@@ -670,14 +643,14 @@ const Admin = () => {
                         </p>
                       </div>
                       <div className="flex gap-2">
-                        <button className="p-2 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors">
+                        <button onClick={()=> handleEditEvent(event)} className="px-5 p-2 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors">
                           <Edit2 size={18} />
                         </button>
-                        <button className="p-2 hover:bg-red-100 rounded-lg text-red-600 transition-colors">
+                        {/* <button className="p-2 hover:bg-red-100 rounded-lg text-red-600 transition-colors">
                           <Trash2 size={18} />
-                        </button>
+                        </button> */}
                         <ChevronDown
-                          className={`transition-transform ${expandedEvent === event.id ? "rotate-180" : ""}`}
+                          className={`transition-transform ${expandedEvent === event.id ? "rotate-180 px-5" : ""}`}
                           size={20}
                         />
                       </div>

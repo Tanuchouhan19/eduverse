@@ -26,6 +26,11 @@ const listingSchema = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         required  : true,
         ref : 'User'
+    },
+     category: {           // ✅ Capital C → small c
+        type: String,
+        default: "General", // ✅ true nahi — string default
+        required: true
     }
 },{
     timestamps : true

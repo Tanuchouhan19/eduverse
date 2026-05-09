@@ -102,7 +102,7 @@ const privateController = async(req,res)=> {
 
 // Generate Token
 const generateToken = (id) => {
-  let token = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "190d" });
+  let token = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "360d" });
   return token;
 };
 

@@ -50,6 +50,28 @@ const updateUser = async (updatedUser ,token) =>{
   return response.data
 }
 
-const adminService = {fetchAllUsers , fetchAllEvents ,fetchAllListings, updateListing ,updateUser}
+const createEvent = async (FormData , token)=>{
+  let options = {
+      headers : {
+         authorization : `Bearer ${token}`
+    }
+  }
+  const response = await axios.post("/api/admin/event" , FormData ,options)
+  return response.data
+}
+
+const update = async (updatedEvent , token)=>{
+  let options = {
+      headers : {
+         authorization : `Bearer ${token}`
+    }
+  }
+  const response = await axios.put("/api/admin/event/" + updatedEvent._id , updatedEvent ,options)
+  console.log(response.data)
+  return response.data
+}
+
+
+const adminService = {fetchAllUsers , fetchAllEvents ,fetchAllListings, updateListing ,updateUser, createEvent,update}
 
 export default adminService
