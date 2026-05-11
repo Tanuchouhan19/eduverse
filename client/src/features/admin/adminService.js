@@ -1,6 +1,7 @@
 import axios from "axios"
+import { apiUrl } from "../../config/api"
 
-const API_URL = "/api/admin/"
+const API_URL = apiUrl("/api/admin/")
 
 
 const fetchAllUsers = async (token) => {
@@ -16,12 +17,12 @@ const fetchAllUsers = async (token) => {
 }
 
 const fetchAllEvents = async () => {
-       const response = await axios.get("/api/event" )
+       const response = await axios.get(apiUrl("/api/event") )
     return response.data
 }
 
 const fetchAllListings = async () => {
-    const response = await axios.get("/api/product" )
+    const response = await axios.get(apiUrl("/api/product") )
     return response.data
 }
 
@@ -33,7 +34,7 @@ const updateListing = async (selectedListing ,token) =>{
       authorization : `Bearer ${token}`
     }
   }
-  const response = await axios.put("/api/admin/product/" + selectedListing._id ,selectedListing ,options)
+  const response = await axios.put(apiUrl("/api/admin/product/" + selectedListing._id) ,selectedListing ,options)
   console.log(response.data)
   return response.data
 }
@@ -45,7 +46,7 @@ const updateUser = async (updatedUser ,token) =>{
       authorization : `Bearer ${token}`
     }
   }
-  const response = await axios.put("/api/admin/users/" + updatedUser._id ,updatedUser ,options)
+  const response = await axios.put(apiUrl("/api/admin/users/" + updatedUser._id) ,updatedUser ,options)
   console.log(response.data)
   return response.data
 }
@@ -56,7 +57,7 @@ const createEvent = async (FormData , token)=>{
          authorization : `Bearer ${token}`
     }
   }
-  const response = await axios.post("/api/admin/event" , FormData ,options)
+  const response = await axios.post(apiUrl("/api/admin/event") , FormData ,options)
   return response.data
 }
 
@@ -66,7 +67,7 @@ const update = async (updatedEvent , token)=>{
          authorization : `Bearer ${token}`
     }
   }
-  const response = await axios.put("/api/admin/event/" + updatedEvent._id , updatedEvent ,options)
+  const response = await axios.put(apiUrl("/api/admin/event/" + updatedEvent._id) , updatedEvent ,options)
   console.log(response.data)
   return response.data
 }

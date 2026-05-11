@@ -1,7 +1,8 @@
 import axios from "axios"
+import { apiUrl } from "../../config/api"
 
 const fetchProducts = async()=>{
-    const response = await axios.get("/api/product")
+    const response = await axios.get(apiUrl("/api/product"))
     return response.data
 }
 
