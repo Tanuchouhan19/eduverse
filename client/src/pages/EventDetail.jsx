@@ -6,8 +6,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { getEvent } from "../features/events/eventsSlice.js";
 
+
 const EventDetail = () => {
-  const { event, eventLoading } = useSelector((state) => state.events);
+  const { event, eventsLoading } = useSelector((state) => state.events);
   const { eid } = useParams();
   const navigate = useNavigate();
   const [newComment, setNewComment] = useState("");
@@ -17,14 +18,15 @@ const EventDetail = () => {
   const [intCount, setIntCount] = useState(247);
   const dispatch = useDispatch();
 
-  useEffect(() => { dispatch(getEvent(eid)); }, [eid]);
+
+  useEffect(() => { dispatch(getEvent(eid)); }, [dispatch, eid]);
 
   const handleBack = () => {
     if (window.history.length > 1) navigate(-1);
     else navigate("/events");
   };
 
-  if (eventLoading) return <Loader />;
+  if (eventsLoading) return <Loader />;
 
   if (!event) {
     return (
@@ -721,23 +723,27 @@ const EventDetail = () => {
               </div>
             ) : (
               <div>
-                {allComments.map((comment, i) => (
-                  <div key={comment.id} className="comment-card">
+                {allComments.map((comment) => {
+                  const username = comment.username || comment.user?.name || "User";
+
+                  return (
+                  <div key={comment.id || comment._id} className="comment-card">
                     <div
                       className="c-ava"
-                      style={{ background: avatarColors[comment.username.charCodeAt(0) % avatarColors.length] }}
+                      style={{ background: avatarColors[username.charCodeAt(0) % avatarColors.length] }}
                     >
-                      {comment.username.charAt(0).toUpperCase()}
+                      {username.charAt(0).toUpperCase()}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px", flexWrap: "wrap" }}>
-                        <span className="c-name">{comment.username}</span>
-                        <span className="c-time">{comment.timestamp}</span>
+                        <span className="c-name">{username}</span>
+                        <span className="c-time">{comment.timestamp || new Date(comment.createdAt).toLocaleString()}</span>
                       </div>
                       <p className="c-text">{comment.text}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

@@ -68,7 +68,7 @@ const loginUser = async (req, res) => {
 
   if (user && (await bcrypt.compare(password, user.password))) {
     if(user.isActive) {
-     res.status(200).json({
+     return res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -87,9 +87,6 @@ const loginUser = async (req, res) => {
      res.status(401);
     throw new Error("Invalid Credentials");
   }
-  console.log(user);
-
-  res.send("login");
 };
 
 

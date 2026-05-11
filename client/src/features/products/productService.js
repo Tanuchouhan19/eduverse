@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const fetchProducts = async()=>{
-    const response = await axios.get("http://localhost:8080/api/product")
+    const response = await axios.get("/api/product")
     return response.data
 }
 

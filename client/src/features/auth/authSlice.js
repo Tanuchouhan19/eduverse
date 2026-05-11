@@ -12,11 +12,11 @@ const authSlice = createSlice({
         message: ""
     },
     reducers: {},
-    extraReducers: builder => { 
+    extraReducers: builder => {
         builder
 
         // register case
-        .addCase(registerUser.pending, (state , action)=> {
+        .addCase(registerUser.pending, (state)=> {
             state.isLoading = true
             state.isSuccess = false
             state.isError = false
@@ -28,7 +28,7 @@ const authSlice = createSlice({
             state.isError = false
         })
          .addCase(registerUser.rejected, (state , action)=> {
-            state.isLoading = true
+            state.isLoading = false
             state.isSuccess = false
             state.isError = true
             state.message = action.payload
@@ -36,7 +36,7 @@ const authSlice = createSlice({
 
         // logincase
 
-        .addCase(loginUser.pending, (state , action)=> {
+        .addCase(loginUser.pending, (state)=> {
             state.isLoading = true
             state.isSuccess = false
             state.isError = false
@@ -48,14 +48,14 @@ const authSlice = createSlice({
             state.isError = false
         })
          .addCase(loginUser.rejected, (state , action)=> {
-            state.isLoading = true
+            state.isLoading = false
             state.isSuccess = false
             state.isError = true
             state.message = action.payload
         })
 
         // logout case
-         .addCase(logoutUser.fulfilled, (state , action)=> {
+         .addCase(logoutUser.fulfilled, (state)=> {
             state.isLoading = false
             state.isSuccess = false
             state.isError = false
@@ -73,10 +73,10 @@ export const registerUser =  createAsyncThunk("AUTH/REGISTER" , async (formData 
     try {
         return await authService.register(formData)
     } catch (error) {
-        const message = error.response.data.message
+        const message = error.response?.data?.message || error.message || "Registration failed"
         return thunkAPI.rejectWithValue(message)
     }
-})     
+})
 
 
 // login user
@@ -84,14 +84,14 @@ export const loginUser =  createAsyncThunk("AUTH/LOGIN" , async (formData , thun
     try {
         return await authService.login(formData)
     } catch (error) {
-        const message = error.response.data.message
+        const message = error.response?.data?.message || error.message || "Login failed"
         return thunkAPI.rejectWithValue(message)
     }
-})    
+})
 
 
 
 // Logout user
 export const logoutUser =  createAsyncThunk("AUTH/LOGOUT" , async ( )=>{
     localStorage.removeItem('user')
-})   
+})

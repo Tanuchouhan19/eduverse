@@ -7,19 +7,19 @@ const cors = require('cors')  // ✅ Yeh line add karo!
 
 const PORT = process.env.PORT || 5000
 const app = express()
- 
+
 // DB CONNECTION
 connectDB()
 
 app.use(cors({
-  origin: "http://localhost:5174",
+  origin: "http://localhost:5173",
   credentials: true
 }))
 // body Parser
 app.use(express.json())
 app.use(express.urlencoded())
 
-// Home Route 
+// Home Route
  app.get("/" , (req, res)=>{
     res.json({
         msg : "WELCOME TO EdUVERSE API 1.0"
@@ -54,4 +54,3 @@ app.use(errorHandler)
  app.listen(PORT, ()=>{
     console.log(`SERVER IS RUNNING AT PORT : ${PORT}`.bgYellow.white  )
  })
- 

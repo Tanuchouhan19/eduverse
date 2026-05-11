@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { events } from "../../data/events";
 import eventService from "./eventsService";
 
 const eventSlice = createSlice({
@@ -16,7 +15,7 @@ const eventSlice = createSlice({
     reducers : {},
     extraReducers : (builder) => {
         builder
-        .addCase(getEvents.pending , (state,action)=>{
+        .addCase(getEvents.pending , (state)=>{
             state.eventsLoading = true
             state.eventsSuccess = false
             state.eventsError = false
@@ -34,7 +33,7 @@ const eventSlice = createSlice({
             state.eventsErrorMessage = action.payload
         })
 // get single eventt
-        .addCase(getEvent.pending , (state,action)=>{
+        .addCase(getEvent.pending , (state)=>{
             state.eventsLoading = true
             state.eventsSuccess = false
             state.eventsError = false
@@ -57,21 +56,20 @@ const eventSlice = createSlice({
 export default eventSlice.reducer 
 
 // GET EVENTS
-export const getEvents = createAsyncThunk("FETCH/EVENTS" , async()=>{
+export const getEvents = createAsyncThunk("FETCH/EVENTS", async (_, thunkAPI) => {
     try {
         return await eventService.fetchEvents()
     } catch (error) {
-        const message = error.response.data.message
-        return thunkAPI.rejectWithValue(message)  
+        const message = error.response?.data?.message || "Something went wrong"
+        return thunkAPI.rejectWithValue(message)
     }
 })
 
-// GET EVENT
-export const getEvent= createAsyncThunk("FETCH/EVENT" , async(eid)=>{
+export const getEvent = createAsyncThunk("FETCH/EVENT", async (eid, thunkAPI) => {
     try {
         return await eventService.fetchEvent(eid)
     } catch (error) {
-        const message = error.response.data.message
-        return thunkAPI.rejectWithValue(message)  
+        const message = error.response?.data?.message || "Something went wrong"
+        return thunkAPI.rejectWithValue(message)
     }
 })

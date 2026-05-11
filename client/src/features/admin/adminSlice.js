@@ -29,7 +29,7 @@ const adminSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAllUsers.pending, (state, action) => {
+      .addCase(getAllUsers.pending, (state) => {
         state.adminLoading = true;
         state.adminSuccess = false;
         state.adminError = false;
@@ -47,7 +47,7 @@ const adminSlice = createSlice({
         state.adminErrorMessage = action.payload;
       })
 // for events
-      .addCase(getAllEvents.pending, (state, action) => {
+      .addCase(getAllEvents.pending, (state) => {
         state.adminLoading = true;
         state.adminSuccess = false;
         state.adminError = false;
@@ -66,7 +66,7 @@ const adminSlice = createSlice({
       })
 
 // for Listings
-      .addCase(getAllListings.pending, (state, action) => {
+      .addCase(getAllListings.pending, (state) => {
         state.adminLoading = true;
         state.adminSuccess = false;
         state.adminError = false;
@@ -85,7 +85,7 @@ const adminSlice = createSlice({
       })
 
  //for Update Listings
-      .addCase(updateListing.pending, (state, action) => {
+      .addCase(updateListing.pending, (state) => {
         state.adminLoading = true;
         state.adminSuccess = false;
         state.adminError = false;
@@ -105,7 +105,7 @@ const adminSlice = createSlice({
 
 
 //for Update Users
-      .addCase(updateUser.pending, (state, action) => {
+      .addCase(updateUser.pending, (state) => {
         state.adminLoading = true;
         state.adminSuccess = false;
         state.adminError = false;
@@ -125,7 +125,7 @@ const adminSlice = createSlice({
 
 
       //for Update Event
-      .addCase(updateEvent.pending, (state, action) => {
+      .addCase(updateEvent.pending, (state) => {
         state.adminLoading = true;
         state.adminSuccess = false;
         state.adminError = false;
@@ -133,7 +133,7 @@ const adminSlice = createSlice({
       .addCase(updateEvent.fulfilled, (state, action) => {
         state.adminLoading = false;
         state.adminSuccess = true;
-        state.allUsers = state.allEvents.map(event => event._id === action.payload._id ? action.payload : event)
+        state.allEvents = state.allEvents.map(event => event._id === action.payload._id ? action.payload : event)
         state.edit ={event:{}, isEdit : false}
         state.adminError = false;
       })
@@ -159,7 +159,7 @@ export const getAllUsers = createAsyncThunk(
     try {
       return await adminService.fetchAllUsers(token);
     } catch (error) {
-      const message = error.response?.data?.message;
+      const message = error.response?.data?.message || error.message || "Unable to fetch users";
       return thunkAPI.rejectWithValue(message);
     }
   },
@@ -170,7 +170,7 @@ export const getAllEvents = createAsyncThunk("FETCH/EVENTS/ADMIN",async (_, thun
     try {
      return await adminService.fetchAllEvents();
     } catch (error) {
-      const message = error.response?.data?.message;
+      const message = error.response?.data?.message || error.message || "Unable to fetch events";
       return thunkAPI.rejectWithValue(message);
     }
   },
@@ -181,7 +181,7 @@ export const getAllListings = createAsyncThunk("FETCH/LISTINGS/ADMIN",async (_, 
     try {
       return await adminService.fetchAllListings();
     } catch (error) {
-      const message = error.response?.data?.message;
+      const message = error.response?.data?.message || error.message || "Unable to fetch listings";
       return thunkAPI.rejectWithValue(message);
     }
   },
@@ -193,7 +193,7 @@ export const updateListing = createAsyncThunk("UPDATE/LISTING/ADMIN",async (sele
     try {
       return await adminService.updateListing(selectedListing,token);
     } catch (error) {
-      const message = error.response.data.message;
+      const message = error.response?.data?.message || error.message || "Unable to update listing";
       return thunkAPI.rejectWithValue(message);
     }
   },
@@ -205,7 +205,7 @@ export const updateUser = createAsyncThunk("UPDATE/USERS/ADMIN",async (updatedUs
     try {
       return await adminService.updateUser(updatedUser,token);
     } catch (error) {
-      const message = error.response.data.message;
+      const message = error.response?.data?.message || error.message || "Unable to update user";
       return thunkAPI.rejectWithValue(message);
     }
   },
@@ -217,7 +217,7 @@ export const addEvent = createAsyncThunk("ADD/EVENT/ADMIN", async (FormData , th
    try {
         return await adminService.createEvent(FormData , token) 
    } catch (error) {
-     const message = error.response.data.message
+     const message = error.response?.data?.message || error.message || "Unable to add event"
      return thunkAPI.rejectWithValue(message);
    }
 }
@@ -229,7 +229,7 @@ export const updateEvent = createAsyncThunk("UPDATE/EVENT/ADMIN", async (updated
    try {
         return await adminService.update(updatedEvent , token) 
    } catch (error) {
-     const message = error.response.data.message
+     const message = error.response?.data?.message || error.message || "Unable to update event"
      return thunkAPI.rejectWithValue(message);
    }
 }

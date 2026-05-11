@@ -3,7 +3,7 @@ const Listing = require("../models/listingModel")
 
 
 const getProducts = async (req, res) => {
-    const listings = await Listing.find().populate('user')
+    const listings = await Listing.find().populate('user', '-password')
 
     if (!listings) {
         res.status(404)
@@ -41,7 +41,7 @@ const addProduct = async (req, res) => {
 
 // for single product  find by id 
 const getProduct = async (req, res) => {
-    const listing = await Listing.findById(req.params.id).populate('user')
+    const listing = await Listing.findById(req.params.id).populate('user', '-password')
 
     if (!listing) {
         res.status(404)
@@ -53,7 +53,7 @@ const getProduct = async (req, res) => {
 
 
 const updateProduct = async (req, res) => {
-    const updatedListing = await Listing.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('user')
+    const updatedListing = await Listing.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('user', '-password')
 
     if (!updatedListing) {
         res.status(404)

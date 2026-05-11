@@ -17,7 +17,7 @@ const addComment = async (req , res) => {
 }
 
 const getComments  =  async (req,res) => {
-    const comments = await Comment.find({event : req.params.eid}).populate('user').populate('event')
+    const comments = await Comment.find({event : req.params.eid}).populate('user', '-password').populate('event')
 
     if(!comments){
         res.status(404)

@@ -8,7 +8,7 @@ const Comment = require('../models/commentModel')
 // -----------------------------------------------------------------------
 
 const getAllUsers = async (req, res) => {
-   const users = await User.find();
+   const users = await User.find().select('-password');
    if (!users) {
       res.status(404);
       throw new Error("Users Not Found ");
@@ -19,9 +19,9 @@ const getAllUsers = async (req, res) => {
 // ----------------------------------------------------------------------
 
 const updateUser =async (req, res) => {
-  const updatedUser = await User.findByIdAndUpdate(req.params.uid,req.body, {new : true})
+  const updatedUser = await User.findByIdAndUpdate(req.params.uid,req.body, {new : true}).select('-password')
    
-  if(!updateUser){
+  if(!updatedUser){
    res.status(400)
    throw new Error('User Not updated')
   }
@@ -73,7 +73,7 @@ const updateEvent = async (req, res) => {
 // ----------------------------------------------------------------------------------
 
 const updateProductListing = async(req, res) => {
-const updatedListing = await Listing.findByIdAndUpdate(req.params.pid, req.body, { new: true }).populate('user')
+const updatedListing = await Listing.findByIdAndUpdate(req.params.pid, req.body, { new: true }).populate('user', '-password')
 
     if (!updatedListing) {
         res.status(404)
@@ -85,7 +85,7 @@ const updatedListing = await Listing.findByIdAndUpdate(req.params.pid, req.body,
 // -------------------------------------------------------------------------------------------
 
 const getAllComments = async(req, res) => {
-     const comments = await Comment.find().populate('user').populate('event')
+     const comments = await Comment.find().populate('user', '-password').populate('event')
 
      if(!comments){
       res.status(404)

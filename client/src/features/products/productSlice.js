@@ -16,39 +16,39 @@ const productSlice = createSlice({
     reducers : {},
     extraReducers : (builder) => {
       builder
-        .addCase(getProducts.pending , (state,action)=>{
+        .addCase(getProducts.pending , (state)=>{
             state.productLoading = true
             state.productSuccess = false
             state.productError = false
-        }) 
+        })
         .addCase(getProducts.fulfilled , (state,action)=>{
             state.productLoading = false
             state.allProducts = action.payload
             state.productSuccess = true
             state.productError = false
-        }) 
+        })
 
         .addCase(getProducts.rejected , (state,action)=>{
             state.productLoading = false
             state.productSuccess = false
             state.productError = true
             state.productErrorMessage = action.payload
-        }) 
+        })
 
-        
+
     }
 }
 )
 
 export default productSlice.reducer
 
-// fetch products 
+// fetch products
 
 export const getProducts = createAsyncThunk("FETCH/PRODUCTS" , async(_ , thunkAPI)=>{
     try {
         return await productService.fetchProducts()
     } catch (error) {
-         const message = error.response.data.message
+         const message = error.response?.data?.message || error.message || "Unable to fetch products"
          return thunkAPI.rejectWithValue(message)
     }
-}) 
+})
