@@ -6,15 +6,9 @@ export const fetchComments = async(eid) => {
     return response.data
 }
 
-export const createComment = async(comment, token) => {
-    const response = await axios.post(
-        apiUrl(`/api/event/${comment.eid}/comment`),
-        { text: comment.text },
-        {
-            headers: {
-                authorization: `Bearer ${token}`,
-            },
-        },
+export const createComment = async(comment) => {
+    const response = await axios.post(apiUrl(`/api/event/${comment.eid}/comment`),
+        { text: comment.text, username: comment.username },
     )
     return response.data
 }

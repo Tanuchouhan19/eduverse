@@ -30,18 +30,18 @@ import commentService from "./commentsService";
                 state.commentsError = true
                 state.commentsErrorMessage = action.payload
             })
-            .addCase(addComments.pending, (state) => {
+            .addCase(addComment.pending, (state) => {
                 state.commentsLoading = true
                 state.commentsSuccess = false
                 state.commentsError = false
                 state.commentsErrorMessage = ""
             })
-            .addCase(addComments.fulfilled, (state, action) => {
+            .addCase(addComment.fulfilled, (state, action) => {
                 state.commentsLoading = false
                 state.commentsSuccess = true
                 state.allComments.push(action.payload)
             })
-            .addCase(addComments.rejected, (state, action) => {
+            .addCase(addComment.rejected, (state, action) => {
                 state.commentsLoading = false
                 state.commentsSuccess = false
                 state.commentsError = true
@@ -62,12 +62,10 @@ export const getComments = createAsyncThunk("FETCH/COMMENTS" , async(eid, thunkA
     }
 })
 
-
-export const addComments = createAsyncThunk("ADD/COMMENT" , async(comment, thunkAPI) => {
-    const token = thunkAPI.getState().auth.user?.token
-
+// add comment
+export const addComment = createAsyncThunk("ADD/COMMENT" , async(comment, thunkAPI) => {
     try {
-       return await commentService.createComment(comment, token)
+       return await commentService.createComment(comment)
     } catch (error) {
         const message = error.response?.data?.message || error.message || "Unable to add comment"
         return thunkAPI.rejectWithValue(message)

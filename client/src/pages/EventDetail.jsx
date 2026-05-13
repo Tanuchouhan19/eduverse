@@ -5,21 +5,52 @@ import Loader from "../components/Loader.jsx";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { getEvent } from "../features/events/eventsSlice.js";
+import { addComment, getComments } from "../features/Comments/commentsSlice.js";
 
 
 const EventDetail = () => {
   const { event, eventsLoading } = useSelector((state) => state.events);
+  const { allComments: savedComments, commentsLoading } = useSelector((state) => state.comments);
+  const { user } = useSelector((state) => state.auth);
   const { eid } = useParams();
   const navigate = useNavigate();
-  const [newComment, setNewComment] = useState("");
-  const [localComments, setLocalComments] = useState([]);
   const [isInterested, setIsInterested] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [intCount, setIntCount] = useState(247);
+  const [localComments, setLocalComments] = useState([]);
   const dispatch = useDispatch();
 
+  const [text, setText] = useState("");
 
-  useEffect(() => { dispatch(getEvent(eid)); }, [dispatch, eid]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const trimmedText = text.trim();
+    if (!trimmedText || commentsLoading) return;
+
+    try {
+      await dispatch(addComment({ eid, text: trimmedText, username: user?.name || "Guest" })).unwrap();
+      setText("");
+      dispatch(getComments(eid));
+    } catch (error) {
+      setLocalComments((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          username: user?.name || "Guest",
+          text: trimmedText,
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
+      setText("");
+      console.warn("Comment saved locally because backend rejected the request:", error);
+    }
+  };
+
+
+  useEffect(() => { 
+    dispatch(getEvent(eid));
+    dispatch(getComments(eid));
+  }, [dispatch, eid]);
 
   const handleBack = () => {
     if (window.history.length > 1) navigate(-1);
@@ -53,13 +84,6 @@ const EventDetail = () => {
     return new Date(dateStr).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   };
 
-  const handleAddComment = (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-    setLocalComments((prev) => [...prev, { id: Date.now(), username: "You", text: newComment, timestamp: new Date().toLocaleString() }]);
-    setNewComment("");
-  };
-
   const handleInterested = () => {
     if (isInterested) return;
     setIsInterested(true);
@@ -67,7 +91,7 @@ const EventDetail = () => {
     setShowPopup(true);
   };
 
-  const allComments = [...(event.comments ?? []), ...localComments];
+  const allComments = [...(savedComments?.length ? savedComments : (event.comments ?? [])), ...localComments];
   const avatarColors = [
     "linear-gradient(135deg,#e07b39,#b94a1a)",
     "linear-gradient(135deg,#7c3a00,#4a1f00)",
@@ -698,18 +722,18 @@ const EventDetail = () => {
               </span>
             </div>
 
-            <form className="comment-form" onSubmit={handleAddComment}>
+            <form className="comment-form" onSubmit={handleSubmit}>
               <div className="c-avatar">
                 <User style={{ width: 16, height: 16, color: "#fff" }} />
               </div>
               <input
                 type="text"
                 className="comment-input-field"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
                 placeholder="Share your thoughts about this event…"
               />
-              <button type="submit" className="send-btn">
+              <button type="submit" className="send-btn" disabled={commentsLoading || !text.trim()}>
                 <Send style={{ width: 16, height: 16, color: "#fff" }} />
               </button>
             </form>

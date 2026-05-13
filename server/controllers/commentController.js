@@ -6,14 +6,26 @@ const addComment = async (req , res) => {
     res.status(400)
     throw new Error('Please Add Text!')
    }
+
+   const commentData = {
+    text : req.body.text,
+    event : req.params.eid,
+    username : req.body.username || 'Guest'
+   }
    
-   const newComment = await Comment.create({text : req.body.text, user : req.user._id , event : req.params.eid})
+   if(req.user?._id){
+    commentData.user = req.user._id
+    commentData.username = req.user.name || req.body.username || 'User'
+   }
+   
+   const newComment = await Comment.create(commentData)
 
    if(!newComment){
     res.status(400)
     throw new Error("Comment Not Added!")
    }
-   res.status(201).json(newComment)
+   const savedComment = await Comment.findById(newComment._id).populate('user', '-password').populate('event')
+   res.status(201).json(savedComment)
 }
 
 const getComments  =  async (req,res) => {

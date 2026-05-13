@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import Navbar from "../components/Navbar.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import EventCard from "../components/EventCard.jsx";
 import Footer from "../components/Footer.jsx";
@@ -266,8 +265,6 @@ const Landing = () => {
         fontFamily: "'DM Sans', sans-serif",
       }}
     >
-      <Navbar/>
-
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800;12..96,900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
         @keyframes cursorBlink { 0%,100%{opacity:1;} 50%{opacity:0;} }
