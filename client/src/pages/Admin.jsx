@@ -1028,62 +1028,92 @@ const Admin = () => {
         }}>
 
           {/* ── Logo / Header row ───────────────────────────────────────────── */}
-          <div style={{
-            height:56,flexShrink:0,
-            borderBottom:`1px solid ${th.sidebarBdr}`,
-            display:"flex",alignItems:"center",
-            padding:"0 10px",gap:8,
-          }}>
-            {/* Brand icon — always visible */}
+          {/* EXPANDED: [logo icon + EduVerse text + collapse arrow]            */}
+          {/* COLLAPSED: [single branded button — click to expand]              */}
+          {(!collapsed || isMobile) ? (
+            /* ── EXPANDED STATE ── */
             <div style={{
-              width:32,height:32,borderRadius:9,flexShrink:0,
-              background:accentA,
-              display:"flex",alignItems:"center",justifyContent:"center",
-              fontSize:14,fontWeight:800,color:"#fff",fontFamily:"Sora,sans-serif",
-              letterSpacing:-.5,
-            }}>E</div>
-
-            {/* Brand name — hidden when collapsed desktop */}
-            {(!collapsed || isMobile) && (
-              <span style={{
-                flex:1,
-                fontFamily:"Sora,sans-serif",fontWeight:800,fontSize:14,
-                color:th.text,whiteSpace:"nowrap",overflow:"hidden",
-              }}>
-                EduVerse
-              </span>
-            )}
-
-            {/* Toggle — X on mobile, sidebar icon on desktop */}
-            {isMobile ? (
-              <button onClick={()=>setMobileDrawer(false)} style={{
-                width:28,height:28,borderRadius:7,flexShrink:0,
-                border:`1px solid ${th.sidebarBdr}`,
-                background:th.tableHead,
-                cursor:"pointer",color:th.textSec,
+              height:56,flexShrink:0,
+              borderBottom:`1px solid ${th.sidebarBdr}`,
+              display:"flex",alignItems:"center",
+              padding:"0 12px",gap:8,
+            }}>
+              {/* Logo mark */}
+              <div style={{
+                width:30,height:30,borderRadius:8,flexShrink:0,
+                background:accentA,
                 display:"flex",alignItems:"center",justifyContent:"center",
               }}>
-                <Icon name="x" size={14}/>
-              </button>
-            ) : (
-              <button
-                onClick={()=>setCollapsed(p=>!p)}
-                title={collapsed?"Expand":"Collapse"}
-                style={{
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+              </div>
+              {/* Brand name */}
+              <span style={{flex:1,fontFamily:"Sora,sans-serif",fontWeight:800,fontSize:14,color:th.text,whiteSpace:"nowrap"}}>
+                EduVerse
+              </span>
+              {/* Collapse / Close button */}
+              {isMobile ? (
+                <button onClick={()=>setMobileDrawer(false)} style={{
                   width:28,height:28,borderRadius:7,flexShrink:0,
-                  border:`1px solid ${th.sidebarBdr}`,
-                  background:th.tableHead,
+                  border:`1px solid ${th.sidebarBdr}`,background:th.tableHead,
                   cursor:"pointer",color:th.textSec,
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  marginLeft: collapsed ? "auto" : 0,
                 }}>
-                <Icon name={collapsed?"chevrons-right":"chevrons-left"} size={14}/>
-              </button>
-            )}
-          </div>
+                  <Icon name="x" size={14}/>
+                </button>
+              ) : (
+                <button onClick={()=>setCollapsed(true)}
+                  title="Collapse sidebar"
+                  style={{
+                    width:28,height:28,borderRadius:7,flexShrink:0,
+                    border:`1px solid ${th.sidebarBdr}`,background:th.tableHead,
+                    cursor:"pointer",color:th.textSec,
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    transition:"background .15s, color .15s",
+                  }}
+                  onMouseEnter={e=>{e.currentTarget.style.background=accentA;e.currentTarget.style.color="#fff";e.currentTarget.style.borderColor=accentA;}}
+                  onMouseLeave={e=>{e.currentTarget.style.background=th.tableHead;e.currentTarget.style.color=th.textSec;e.currentTarget.style.borderColor=th.sidebarBdr;}}
+                >
+                  <Icon name="chevrons-left" size={14}/>
+                </button>
+              )}
+            </div>
+          ) : (
+            /* ── COLLAPSED STATE — single unified button fills the header ── */
+            <button
+              onClick={()=>setCollapsed(false)}
+              title="Expand sidebar"
+              style={{
+                height:56,flexShrink:0,width:"100%",
+                borderBottom:`1px solid ${th.sidebarBdr}`,
+                background:"transparent",border:"none",cursor:"pointer",
+                display:"flex",flexDirection:"column",
+                alignItems:"center",justifyContent:"center",gap:3,
+                padding:0,
+                transition:"background .15s",
+              }}
+              onMouseEnter={e=>e.currentTarget.style.background=th.navHover}
+              onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+            >
+              {/* Book icon — EduVerse brand mark */}
+              <div style={{
+                width:32,height:32,borderRadius:9,
+                background:accentA,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                boxShadow:`0 2px 8px ${accentA}55`,
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+              </div>
+            </button>
+          )}
 
           {/* ── Nav items ───────────────────────────────────────────────────── */}
-          <nav style={{flex:1,padding:"8px 6px",display:"flex",flexDirection:"column",gap:1,overflowY:"auto"}}>
+          <nav style={{flex:1,padding:"8px 6px",display:"flex",flexDirection:"column",gap:2,overflowY:"auto"}}>
             {NAV.map(n => {
               const active = tab===n.id;
               const slim = collapsed && !isMobile;
@@ -1094,16 +1124,35 @@ const Admin = () => {
                   title={slim ? n.label : ""}
                   style={{
                     display:"flex",alignItems:"center",gap:10,
-                    padding: slim ? "10px 0" : "10px 10px",
+                    padding: slim ? "11px 0" : "10px 10px",
                     justifyContent: slim ? "center" : "flex-start",
-                    borderRadius:10,border:"none",width:"100%",
-                    background: active ? accentA : "transparent",
-                    color: active ? "#fff" : th.textSec,
+                    borderRadius: slim ? 10 : 10,
+                    border:"none",width:"100%",
+                    background: active ? (slim ? "transparent" : accentA) : "transparent",
+                    color: active ? (slim ? accentA : "#fff") : th.textSec,
                     fontWeight:active?600:500,fontSize:13,cursor:"pointer",
-                    transition:"background .15s",
+                    transition:"background .15s, color .15s",
                     position:"relative",
                   }}>
-                  <Icon name={n.icon} size={18} style={{flexShrink:0}}/>
+                  {/* Left accent bar for active item when collapsed */}
+                  {active && slim && (
+                    <span style={{
+                      position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",
+                      width:3,height:22,borderRadius:"0 3px 3px 0",
+                      background:accentA,
+                    }}/>
+                  )}
+                  {/* Icon wrapper — accent bg when slim+active */}
+                  <div style={{
+                    width: slim ? 36 : "auto",
+                    height: slim ? 36 : "auto",
+                    borderRadius: slim ? 10 : 0,
+                    background: slim && active ? accentA+"18" : "transparent",
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    flexShrink:0,
+                  }}>
+                    <Icon name={n.icon} size={18} style={{color: active ? (slim ? accentA : "#fff") : th.textSec}}/>
+                  </div>
                   {!slim && <span style={{flex:1,textAlign:"left"}}>{n.label}</span>}
                   {active && !slim && (
                     <span style={{width:6,height:6,borderRadius:"50%",background:"rgba(255,255,255,.65)",flexShrink:0}}/>
