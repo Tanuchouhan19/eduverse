@@ -7,8 +7,15 @@ export const fetchComments = async(eid) => {
 }
 
 export const createComment = async(comment) => {
+    const user = JSON.parse(localStorage.getItem("user"))
+    const config = {
+        headers: {
+            Authorization: `Bearer ${user?.token}`,
+        },
+    }
     const response = await axios.post(apiUrl(`/api/event/${comment.eid}/comment`),
         { text: comment.text, username: comment.username },
+        config,
     )
     return response.data
 }

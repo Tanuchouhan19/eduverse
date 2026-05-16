@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useTheme } from "../context/ThemeContext"
+import { useAuth } from "../context/AuthContext"
 
 const CAT = {
   books:       { icon:"📚", ga:"#fde68a", gb:"#f59e0b" },
@@ -27,7 +28,13 @@ function Counter({ to }) {
 
 export default function EduVerseProfile() {
   const { theme } = useTheme()
+  const { user } = useAuth()  // Get real logged-in user
   const D = theme === "dark"
+
+  const getInitials = (name) => {
+    if (!name) return "?"
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+  }
 
   const [tab,       setTab]       = useState("listings")
   const [listings,  setListings]  = useState([])
@@ -46,9 +53,7 @@ export default function EduVerseProfile() {
   const [simMsg,    setSimMsg]    = useState("")
   const toastTmr = useRef()
 
-  /* ── THEME TOKENS ── */
   const T = D ? {
-    /* DARK — deep navy / electric blue */
     pageBg:"#070c1d", surf:"#0c1226", surf2:"#101a35", surf3:"#162040",
     bd:"#1c2e50", bd2:"#243660",
     tx:"#dce8ff", tx2:"#6b8ab8", tx3:"#344d72",
@@ -62,7 +67,6 @@ export default function EduVerseProfile() {
     sh:"0 8px 48px rgba(0,0,0,.75)", shSm:"0 3px 20px rgba(0,0,0,.55)",
     inp:"#101a35", tagBg:"rgba(0,0,0,.75)",
   } : {
-    /* LIGHT — warm ivory / amber-orange */
     pageBg:"#faf6f0", surf:"#ffffff", surf2:"#fdf9f4", surf3:"#f3e8d8",
     bd:"#e8d9c5", bd2:"#d8c8b0",
     tx:"#1c1410", tx2:"#6b5544", tx3:"#a8907a",
@@ -157,7 +161,6 @@ export default function EduVerseProfile() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap');
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
-        /* ─── Keyframes ─────────────────────────────── */
         @keyframes ev-up    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
         @keyframes ev-scale { from{opacity:0;transform:scale(.94)}       to{opacity:1;transform:scale(1)}      }
         @keyframes ev-toast { from{opacity:0;transform:translateX(22px)} to{opacity:1;transform:translateX(0)} }
@@ -166,15 +169,12 @@ export default function EduVerseProfile() {
         @keyframes ev-slide { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes ev-spin  { to{transform:rotate(360deg)} }
 
-        /* ─── Root ──────────────────────────────────── */
         .ev-root {
           background:${T.pageBg}; color:${T.tx};
           font-family:'DM Sans',sans-serif; font-size:14.5px; line-height:1.6;
           min-height:100vh;
           transition:background .5s cubic-bezier(.4,0,.2,1), color .5s cubic-bezier(.4,0,.2,1);
         }
-
-        /* ─── Hero ──────────────────────────────────── */
         .ev-hero {
           background:${T.heroBg}; position:relative; overflow:hidden;
           transition:background .5s;
@@ -187,8 +187,6 @@ export default function EduVerseProfile() {
           transition:background .5s;
         }
         .ev-hero-inner { max-width:1280px; margin:0 auto; padding:40px 28px 0; position:relative; z-index:1; }
-
-        /* ─── Profile card ──────────────────────────── */
         .ev-profile {
           background:${T.cardBg}; backdrop-filter:blur(24px);
           border:1px solid ${T.bd}; border-radius:22px;
@@ -253,8 +251,6 @@ export default function EduVerseProfile() {
           background:${T.surf3}; border:1px solid ${T.bd}; color:${T.tx2};
           transition:all .5s;
         }
-
-        /* ─── Stats grid ────────────────────────────── */
         .ev-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:20px 0 0; }
         .ev-stat {
           background:${T.surf}; border:1px solid ${T.bd}; border-radius:20px;
@@ -273,8 +269,6 @@ export default function EduVerseProfile() {
           line-height:1; margin-bottom:5px; letter-spacing:-.5px;
         }
         .ev-stat-lbl { font-size:12px; color:${T.tx2}; font-weight:600; transition:color .5s; }
-
-        /* ─── Tabs ──────────────────────────────────── */
         .ev-tabs { display:flex; gap:5px; padding:20px 0 0; position:relative; z-index:1; }
         .ev-tab {
           flex:1; padding:10px 14px; border-radius:11px; border:none;
@@ -288,11 +282,7 @@ export default function EduVerseProfile() {
           background:linear-gradient(135deg,${T.ac},${T.ac2}); color:#fff;
           box-shadow:0 4px 20px ${T.glow}; transform:translateY(-2px);
         }
-
-        /* ─── Main grid ─────────────────────────────── */
         .ev-main { max-width:1280px; margin:0 auto; padding:24px 28px 72px; display:grid; grid-template-columns:1fr 360px; gap:22px; align-items:start; }
-
-        /* ─── Filter bar ────────────────────────────── */
         .ev-chip {
           padding:7px 15px; border-radius:99px; font-size:13px; font-weight:600;
           border:1.5px solid ${T.bd}; background:transparent; color:${T.tx2};
@@ -301,8 +291,6 @@ export default function EduVerseProfile() {
         }
         .ev-chip:hover { border-color:${T.ac}; color:${T.ac}; transform:translateY(-1px); }
         .ev-chip.on { background:${T.acBg}; border-color:${T.ac}; color:${T.ac}; }
-
-        /* ─── Listing cards ─────────────────────────── */
         .ev-lcard {
           background:${T.surf}; border:1px solid ${T.bd}; border-radius:18px; overflow:hidden;
           transition:transform .28s cubic-bezier(.34,1.2,.64,1), box-shadow .28s, background .5s, border-color .5s;
@@ -310,14 +298,10 @@ export default function EduVerseProfile() {
         .ev-lcard:hover { transform:translateY(-6px) scale(1.012); box-shadow:${T.sh}; }
         .ev-lcard-img { width:100%; height:165px; object-fit:cover; display:block; transition:transform .5s; }
         .ev-lcard:hover .ev-lcard-img { transform:scale(1.07); }
-
-        /* ─── Form inputs ───────────────────────────── */
         .ev-inp:focus { border-color:${T.ac} !important; box-shadow:0 0 0 3px ${T.acBg}; }
         .ev-inp::placeholder { color:${T.tx3}; }
         select.ev-inp { cursor:pointer; }
         select.ev-inp option { background:${T.surf2}; color:${T.tx}; }
-
-        /* ─── Buttons ───────────────────────────────── */
         .btn-primary {
           background:linear-gradient(135deg,${T.ac},${T.ac2}); color:#fff;
           border:none; border-radius:11px; padding:11px 24px; font-weight:700; font-size:14px;
@@ -345,14 +329,10 @@ export default function EduVerseProfile() {
           font-family:'DM Sans',sans-serif; cursor:pointer; transition:transform .15s;
         }
         .btn-del:hover { transform:scale(1.06); }
-
-        /* ─── Message cards ─────────────────────────── */
         .ev-msg { border-radius:13px; padding:14px; margin-bottom:8px; cursor:pointer; transition:transform .18s; }
         .ev-msg:hover { transform:translateX(4px); }
         .ev-msg.unread { background:${T.acBg}; border:1px solid ${T.ac}44; border-left:3px solid ${T.ac}; }
         .ev-msg.read { background:${T.surf2}; border:1px solid ${T.bd}; }
-
-        /* ─── Panel ─────────────────────────────────── */
         .ev-panel {
           background:${T.surf}; border:1px solid ${T.bd}; border-radius:22px;
           padding:26px; box-shadow:${T.sh};
@@ -369,30 +349,20 @@ export default function EduVerseProfile() {
           color:${T.tx}; display:flex; align-items:center; gap:10px;
           transition:color .5s;
         }
-
-        /* ─── Overlay / Modal ───────────────────────── */
         .ev-overlay {
           position:fixed; inset:0; background:rgba(0,0,0,.62); z-index:500;
           display:flex; align-items:center; justify-content:center;
           backdrop-filter:blur(8px); animation:ev-up .2s ease;
         }
-
-        /* ─── Empty state ───────────────────────────── */
         .ev-empty { text-align:center; padding:70px 0; }
         .ev-empty-icon { font-size:52px; display:block; margin-bottom:14px; opacity:.5; }
         .ev-empty-title { font-size:15px; font-weight:700; color:${T.tx2}; margin-bottom:8px; transition:color .5s; }
         .ev-empty-sub { font-size:13px; color:${T.tx3}; margin-bottom:22px; transition:color .5s; }
-
-        /* ─── Anims ─────────────────────────────────── */
         .aup { animation:ev-up .45s ease both; }
         .asc { animation:ev-scale .35s ease both; }
-
-        /* ─── Scrollbar ─────────────────────────────── */
         ::-webkit-scrollbar { width:4px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:${T.bd2}; border-radius:2px; }
-
-        /* ─── Responsive ────────────────────────────── */
         @media(max-width:1100px) {
           .ev-main { grid-template-columns:1fr !important; }
           .ev-msgs-col { position:static !important; }
@@ -425,15 +395,25 @@ export default function EduVerseProfile() {
             <div className="ev-profile aup">
               <div className="ev-profile-orb1" /><div className="ev-profile-orb2" />
               <div className="ev-avatar-wrap">
-                <div className="ev-avatar">B</div>
+                <div className="ev-avatar">{getInitials(user?.name || user?.username)}</div>
                 <div className="ev-online" />
               </div>
               <div className="ev-profile-info">
                 <p className="ev-profile-tag">✦ Student Seller · Premium Member</p>
-                <h1 className="ev-profile-name">Bome</h1>
+                <h1 className="ev-profile-name">
+                  {user?.name || user?.username || "Student"}
+                </h1>
                 <div className="ev-info-chips">
-                  {[["✉","bome@gmail.com"],["✆","+91 98765 43214"],["⊙","IIT Indore, MP"],["◈","B.Tech · 3rd Year"]].map(([ic,v])=>(
-                    <div key={v} className="ev-info-chip"><span style={{fontSize:11}}>{ic}</span><span>{v}</span></div>
+                  {[
+                    { id: "email", icon: "✉", value: user?.email || "No email" },
+                    { id: "phone", icon: "✆", value: user?.phone || user?.phoneNumber || "Not provided" },
+                    { id: "college", icon: "⊙", value: user?.college || user?.institution || "Not provided" },
+                    { id: "course", icon: "◈", value: user?.course || user?.department || "Not provided" },
+                  ].map(({ id, icon, value }) => (
+                    <div key={id} className="ev-info-chip">
+                      <span style={{fontSize:11}}>{icon}</span>
+                      <span>{value}</span>
+                    </div>
                   ))}
                 </div>
               </div>

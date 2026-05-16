@@ -50,7 +50,7 @@ const EventCard = ({ event }) => {
 
   return (
     <Link
-      to={`/event/${event._id}`}
+      to={`/auth/event/${event._id}`}
       className={`
         group relative flex flex-col rounded-2xl overflow-hidden border
         backdrop-blur-md transition-all duration-300 cursor-pointer

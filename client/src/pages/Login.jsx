@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Shield, Eye, EyeOff } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 import { loginUser } from "../features/auth/authSlice";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
-
+  const { login } = useAuth()
   const { user, isLoading, isSuccess, isError, message } = useSelector(state => state.auth)
 
   
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectPath = location.state?.from?.pathname || "/auth/myprofile";
   const [userType, setUserType] = useState("student");
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,18 +30,15 @@ const Login = () => {
 
 
   useEffect(() => {
-    
-   
-
-
-    if (user ) {
-       navigate("/")
+    if (isSuccess && user) {
+      login(user)
+      navigate(redirectPath, { replace: true })
     }
 
     if (isError && message) {
       toast.error(message, { position: "top-center" })
     }
-  }, [isError, message, user])
+  }, [isError, isSuccess, login, message, navigate, redirectPath, user])
 
 
 
@@ -109,6 +109,7 @@ const Login = () => {
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="you@college.edu"
@@ -127,6 +128,7 @@ const Login = () => {
                 <Lock className=" absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="••••••••"

@@ -7,15 +7,16 @@ const addComment = async (req , res) => {
     throw new Error('Please Add Text!')
    }
 
+   if(!req.user?._id){
+    res.status(401)
+    throw new Error('Please login to add a comment')
+   }
+
    const commentData = {
     text : req.body.text,
     event : req.params.eid,
-    username : req.body.username || 'Guest'
-   }
-   
-   if(req.user?._id){
-    commentData.user = req.user._id
-    commentData.username = req.user.name || req.body.username || 'User'
+    user : req.user._id,
+    username : req.user.name || req.body.username || 'User'
    }
    
    const newComment = await Comment.create(commentData)

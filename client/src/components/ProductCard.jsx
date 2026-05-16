@@ -84,7 +84,7 @@ const ProductCard = ({ product, theme = "dark" }) => {
         .pc-card:hover .pc-top-bar { opacity: 1; }
       `}</style>
 
-      <Link to={`/Marketplace/${product._id}`} className="pc-card">
+      <Link to={`/auth/marketplace/${product._id}`} className="pc-card">
 
         <span className="pc-sparkle" style={{ width:6,height:6,background:acc,top:"12%",left:"8%",animationDelay:"0s",opacity:0.5 }} />
         <span className="pc-sparkle" style={{ width:4,height:4,background:acc,top:"30%",right:"10%",animationDelay:"0.8s",opacity:0.4 }} />

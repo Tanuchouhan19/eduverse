@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { getEvent } from "../features/events/eventsSlice.js";
 import { addComment, getComments } from "../features/Comments/commentsSlice.js";
+import { toast } from "react-toastify";
 
 
 const EventDetail = () => {
@@ -17,7 +18,6 @@ const EventDetail = () => {
   const [isInterested, setIsInterested] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [intCount, setIntCount] = useState(247);
-  const [localComments, setLocalComments] = useState([]);
   const dispatch = useDispatch();
 
   const [text, setText] = useState("");
@@ -27,22 +27,18 @@ const EventDetail = () => {
     const trimmedText = text.trim();
     if (!trimmedText || commentsLoading) return;
 
+    if (!user) {
+      toast.info("Please login to message on events", { position: "top-center" });
+      navigate("/login", { state: { from: { pathname: `/auth/event/${eid}` } }, replace: true });
+      return;
+    }
+
     try {
-      await dispatch(addComment({ eid, text: trimmedText, username: user?.name || "Guest" })).unwrap();
+      await dispatch(addComment({ eid, text: trimmedText, username: user.name || "User" })).unwrap();
       setText("");
       dispatch(getComments(eid));
     } catch (error) {
-      setLocalComments((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          username: user?.name || "Guest",
-          text: trimmedText,
-          timestamp: new Date().toLocaleString(),
-        },
-      ]);
-      setText("");
-      console.warn("Comment saved locally because backend rejected the request:", error);
+      toast.error(error || "Unable to add comment", { position: "top-center" });
     }
   };
 
@@ -54,7 +50,7 @@ const EventDetail = () => {
 
   const handleBack = () => {
     if (window.history.length > 1) navigate(-1);
-    else navigate("/events");
+    else navigate("/auth/events");
   };
 
   if (eventsLoading) return <Loader />;
@@ -91,7 +87,7 @@ const EventDetail = () => {
     setShowPopup(true);
   };
 
-  const allComments = [...(savedComments?.length ? savedComments : (event.comments ?? [])), ...localComments];
+  const allComments = savedComments?.length ? savedComments : (event.comments ?? []);
   const avatarColors = [
     "linear-gradient(135deg,#e07b39,#b94a1a)",
     "linear-gradient(135deg,#7c3a00,#4a1f00)",
