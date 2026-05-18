@@ -16,6 +16,7 @@ import PageNotFound from "./pages/PageNotFound";
 import EventDetail from "./pages/EventDetail";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
+import OAuthCallback from "./pages/OAuthCallback";
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route element={<PrivateComponent />}>
           <Route path="marketplace/:pid" element={<ProductDetail />} />
           <Route path="/event/:eid" element={<EventDetail />} />

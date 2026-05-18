@@ -2,39 +2,47 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
 
-    name : {
-        type : String,
-        required : [true , "please Enter Name"]
+    name: {
+        type: String,
+        required: [true, "please Enter Name"]
     },
-    email : {
-        type : String,
-        unique : true ,
-        required : [true , "please Enter Email"]
+    email: {
+        type: String,
+        unique: true,
+        required: [true, "please Enter Email"]
     },
-    phone : {
-        type : String,
-        unique : true,
-        required :[true, "Please Enter Phone"]
+    phone: {
+        type: String,
+        unique: true,
+        sparse: true,       // allows multiple docs to have no phone (OAuth users)
+        required: false
     },
-    password : {
-        type : String ,
-        required : [true , "Please Enter Password"]
+    password: {
+        type: String,
+        required: false     // OAuth users won't have a password
     },
-    isAdmin : {
-        type : Boolean,
-        required : true,
-            default : false
+    avatar: {
+        type: String,
+        default: ""
     },
-    isActive : {
-         type : Boolean,
-         required : true,
-         default : true
+    provider: {
+        type: String,
+        enum: ["local", "github", "google"],
+        default: "local"
+    },
+    isAdmin: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    isActive: {
+        type: Boolean,
+        required: true,
+        default: true
     }
 
-},{
-    timestamps : true
-})
+}, {
+    timestamps: true
+});
 
-module.exports = mongoose.model('User', userSchema)
-
-
+module.exports = mongoose.model('User', userSchema);

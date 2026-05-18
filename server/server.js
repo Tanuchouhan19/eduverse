@@ -26,6 +26,9 @@ app.get("/", (req, res) => {
   res.json({ msg: "WELCOME TO EduVerse API 1.0" })
 })
 
+app.use(require("./routes/githubAuth"))
+app.use(require("./routes/googleAuth"))
+
 app.use("/api/auth", require("./routes/authRoutes"))
 app.use('/api/product', require("./routes/productRoutes"))
 app.use('/api/message', require("./routes/messageRoute"))
