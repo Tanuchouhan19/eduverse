@@ -3,15 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
+import { loginSuccess } from "../features/auth/authSlice";
 
-/**
- * /oauth/callback
- * Backend redirects here after Google / GitHub OAuth with ?token=...
- * This page reads the token, saves it, and redirects the user home.
- */
 const OAuthCallback = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const navigate  = useNavigate();
+  const dispatch  = useDispatch();
   const { login } = useAuth();
 
   useEffect(() => {
@@ -24,16 +20,18 @@ const OAuthCallback = () => {
       return;
     }
 
-    // Decode the JWT payload to get basic user info (no secret needed client-side)
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
       const user    = { token, _id: payload.id };
 
-      // Store token the same way your app normally does
+      // 1. localStorage mein save karo
       localStorage.setItem("user", JSON.stringify(user));
 
-      // Tell AuthContext & Redux about the user
+      // 2. AuthContext update karo
       login(user);
+
+      // 3. Redux store update karo (PrivateComponent yahi check karta hai)
+      dispatch(loginSuccess(user));
 
       navigate("/auth/myprofile", { replace: true });
     } catch {
