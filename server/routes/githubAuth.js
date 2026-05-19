@@ -73,13 +73,16 @@ router.get("/auth/github/callback", async (req, res) => {
       });
     } else {
       let changed = false;
-      if ((!user.name || user.name === "Student") && (profile.name || profile.login)) {
+      if ((profile.name || profile.login) && user.name !== (profile.name || profile.login)) {
         user.name = profile.name || profile.login;
         changed = true;
       }
-      if (!user.avatar && profile.avatar_url) { user.avatar = profile.avatar_url; changed = true; }
-      if (!user.provider || user.provider === "local") { user.provider = "github"; changed = true; }
-      if (!user.phone) { user.phone = getOAuthPhonePlaceholder("github", profile.id, email); changed = true; }
+      if (profile.avatar_url && user.avatar !== profile.avatar_url) { user.avatar = profile.avatar_url; changed = true; }
+      if (user.provider !== "github") { user.provider = "github"; changed = true; }
+      if (!user.phone || /^(google|github):/.test(user.phone)) {
+        user.phone = getOAuthPhonePlaceholder("github", profile.id, email);
+        changed = true;
+      }
       if (changed) await user.save();
     }
 

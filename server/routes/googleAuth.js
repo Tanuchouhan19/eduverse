@@ -103,9 +103,13 @@ router.get("/auth/google/callback", async (req, res) => {
       });
     } else {
       let changed = false;
-      if (!user.avatar && picture) { user.avatar = picture; changed = true; }
-      if (!user.provider || user.provider === "local") { user.provider = "google"; changed = true; }
-      if (!user.phone) { user.phone = getOAuthPhonePlaceholder("google", googleId, email); changed = true; }
+      if (name && user.name !== name) { user.name = name; changed = true; }
+      if (picture && user.avatar !== picture) { user.avatar = picture; changed = true; }
+      if (user.provider !== "google") { user.provider = "google"; changed = true; }
+      if (!user.phone || /^(google|github):/.test(user.phone)) {
+        user.phone = getOAuthPhonePlaceholder("google", googleId, email);
+        changed = true;
+      }
       if (changed) await user.save();
     }
 
