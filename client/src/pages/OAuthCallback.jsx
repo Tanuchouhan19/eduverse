@@ -22,15 +22,16 @@ const OAuthCallback = () => {
 
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const user    = { token, _id: payload.id };
 
-      // 1. localStorage mein save karo
+      const user = {
+        token,
+        _id:   payload.id,
+        name:  payload.name  || payload.displayName || "",
+        email: payload.email || "",
+      };
+
       localStorage.setItem("user", JSON.stringify(user));
-
-      // 2. AuthContext update karo
       login(user);
-
-      // 3. Redux store update karo (PrivateComponent yahi check karta hai)
       dispatch(loginSuccess(user));
 
       navigate("/auth/myprofile", { replace: true });

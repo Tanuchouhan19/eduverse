@@ -54,7 +54,15 @@ router.get("/auth/google/callback", async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(
+  { 
+    id:    user._id, 
+    name:  user.name, 
+    email: user.email 
+  }, 
+  JWT_SECRET, 
+  { expiresIn: "7d" }
+);
     res.redirect(`${FRONTEND_URL}/oauth/callback?token=${token}`);
 
   } catch (err) {
