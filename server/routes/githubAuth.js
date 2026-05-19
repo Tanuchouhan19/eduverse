@@ -16,6 +16,17 @@ const getOAuthPhonePlaceholder = (provider, id, email) => {
   return `${provider}:${identity}`;
 };
 
+const getTokenPayload = (user) => ({
+  id:       user._id,
+  name:     user.name,
+  email:    user.email,
+  phone:    user.phone,
+  avatar:   user.avatar,
+  provider: user.provider,
+  isAdmin:  user.isAdmin,
+  isActive: user.isActive,
+});
+
 /* Step 1: Redirect user to GitHub */
 router.get("/auth/github", (req, res) => {
   const params = new URLSearchParams({
@@ -60,10 +71,20 @@ router.get("/auth/github/callback", async (req, res) => {
         avatar:   profile.avatar_url || "",
         provider: "github",
       });
+    } else {
+      let changed = false;
+      if ((!user.name || user.name === "Student") && (profile.name || profile.login)) {
+        user.name = profile.name || profile.login;
+        changed = true;
+      }
+      if (!user.avatar && profile.avatar_url) { user.avatar = profile.avatar_url; changed = true; }
+      if (!user.provider || user.provider === "local") { user.provider = "github"; changed = true; }
+      if (!user.phone) { user.phone = getOAuthPhonePlaceholder("github", profile.id, email); changed = true; }
+      if (changed) await user.save();
     }
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
-    res.redirect(`${FRONTEND_URL}/oauth/callback?token=${token}`);
+    const token = jwt.sign(getTokenPayload(user), JWT_SECRET, { expiresIn: "7d" });
+    res.redirect(`${FRONTEND_URL}/oauth/callback?token=${encodeURIComponent(token)}`);
 
   } catch (err) {
     console.error("GitHub OAuth error:", err.message);

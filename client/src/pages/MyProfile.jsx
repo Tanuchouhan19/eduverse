@@ -26,6 +26,14 @@ function Counter({ to }) {
   return <>{n.toLocaleString("en-IN")}</>
 }
 
+const isOAuthPhonePlaceholder = (phone = "") =>
+  /^(google|github):/.test(String(phone))
+
+const providerLabel = (provider) => {
+  if (!provider || provider === "local") return "Email account"
+  return `${provider.charAt(0).toUpperCase()}${provider.slice(1)} account`
+}
+
 export default function EduVerseProfile() {
   const { theme } = useTheme()
   const { user } = useAuth()  // Get real logged-in user
@@ -144,6 +152,19 @@ export default function EduVerseProfile() {
     m.from.toLowerCase().includes(msgQ.toLowerCase()) ||
     m.text.toLowerCase().includes(msgQ.toLowerCase())
   )
+  const displayName = user?.name || user?.username || user?.email?.split("@")[0] || "Your profile"
+  const publicPhone = user?.phone && !isOAuthPhonePlaceholder(user.phone) ? user.phone : ""
+  const infoChips = [
+    { id: "email", icon: "✉", value: user?.email },
+    { id: "phone", icon: "✆", value: publicPhone },
+    { id: "college", icon: "⊙", value: user?.college || user?.institution },
+    { id: "course", icon: "◈", value: user?.course || user?.department },
+  ].filter(chip => chip.value)
+  const accountBadges = [
+    user?.isActive !== false ? "✓ Verified" : "Account disabled",
+    providerLabel(user?.provider),
+    `${listings.length} listing${listings.length === 1 ? "" : "s"}`,
+  ]
 
   const inp = {
     width:"100%", padding:"11px 14px", borderRadius:10,
@@ -215,6 +236,9 @@ export default function EduVerseProfile() {
           font-family:'Fraunces',serif; font-weight:900; font-size:36px; color:#fff;
           box-shadow:0 0 0 4px ${T.surf}, 0 0 0 8px ${D?"#1a3566":"#fddcc6"};
           transition:background .5s, box-shadow .5s;
+        }
+        .ev-avatar-img {
+          width:100%; height:100%; border-radius:50%; object-fit:cover; display:block;
         }
         .ev-online {
           position:absolute; bottom:4px; right:4px;
@@ -395,21 +419,20 @@ export default function EduVerseProfile() {
             <div className="ev-profile aup">
               <div className="ev-profile-orb1" /><div className="ev-profile-orb2" />
               <div className="ev-avatar-wrap">
-                <div className="ev-avatar">{getInitials(user?.name || user?.username)}</div>
+                <div className="ev-avatar">
+                  {user?.avatar
+                    ? <img className="ev-avatar-img" src={user.avatar} alt={displayName} />
+                    : getInitials(displayName)}
+                </div>
                 <div className="ev-online" />
               </div>
               <div className="ev-profile-info">
-                <p className="ev-profile-tag">✦ Student Seller · Premium Member</p>
+                <p className="ev-profile-tag">✦ {providerLabel(user?.provider)}</p>
                 <h1 className="ev-profile-name">
-                  {user?.name || user?.username || "Student"}
+                  {displayName}
                 </h1>
                 <div className="ev-info-chips">
-                  {[
-                    { id: "email", icon: "✉", value: user?.email || "No email" },
-                    { id: "phone", icon: "✆", value: user?.phone || user?.phoneNumber || "Not provided" },
-                    { id: "college", icon: "⊙", value: user?.college || user?.institution || "Not provided" },
-                    { id: "course", icon: "◈", value: user?.course || user?.department || "Not provided" },
-                  ].map(({ id, icon, value }) => (
+                  {infoChips.map(({ id, icon, value }) => (
                     <div key={id} className="ev-info-chip">
                       <span style={{fontSize:11}}>{icon}</span>
                       <span>{value}</span>
@@ -419,13 +442,13 @@ export default function EduVerseProfile() {
               </div>
               <div className="ev-badges">
                 <div className="ev-badge-row">
-                  <div className="ev-badge ev-badge-ac">★ 4.8 Rating</div>
-                  <div className="ev-badge ev-badge-pos">✓ Verified</div>
+                  <div className="ev-badge ev-badge-ac">{accountBadges[1]}</div>
+                  <div className="ev-badge ev-badge-pos">{accountBadges[0]}</div>
                 </div>
                 <div className="ev-badge-row">
-                  <div className="ev-badge-sm">⊛ {listings.length} Sales</div>
-                  <div className="ev-badge-sm">● Top Seller</div>
-                  <div className="ev-badge-sm">⬡ Trusted</div>
+                  <div className="ev-badge-sm">⊛ {accountBadges[2]}</div>
+                  <div className="ev-badge-sm">● {messages.length} message{messages.length === 1 ? "" : "s"}</div>
+                  <div className="ev-badge-sm">⬡ {unread} unread</div>
                 </div>
               </div>
             </div>

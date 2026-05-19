@@ -36,6 +36,17 @@ const getOAuthPhonePlaceholder = (provider, id, email) => {
   return `${provider}:${identity}`;
 };
 
+const getTokenPayload = (user) => ({
+  id:       user._id,
+  name:     user.name,
+  email:    user.email,
+  phone:    user.phone,
+  avatar:   user.avatar,
+  provider: user.provider,
+  isAdmin:  user.isAdmin,
+  isActive: user.isActive,
+});
+
 /* Step 1: Redirect user to Google */
 router.get("/auth/google", (req, res) => {
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -90,17 +101,19 @@ router.get("/auth/google/callback", async (req, res) => {
         avatar:   picture,
         provider: "google",
       });
+    } else {
+      let changed = false;
+      if (!user.avatar && picture) { user.avatar = picture; changed = true; }
+      if (!user.provider || user.provider === "local") { user.provider = "google"; changed = true; }
+      if (!user.phone) { user.phone = getOAuthPhonePlaceholder("google", googleId, email); changed = true; }
+      if (changed) await user.save();
     }
 
     const token = jwt.sign(
-  { 
-    id:    user._id, 
-    name:  user.name, 
-    email: user.email 
-  }, 
-  JWT_SECRET, 
-  { expiresIn: "7d" }
-);
+      getTokenPayload(user),
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
     res.redirect(`${FRONTEND_URL}/oauth/callback?token=${encodeURIComponent(token)}`);
 
   } catch (err) {

@@ -25,6 +25,12 @@ const LogoMark = ({ accent }) => (
   </div>
 );
 
+const getDisplayName = (user) =>
+  user?.name || user?.username || user?.email?.split("@")[0] || "Account";
+
+const getInitials = (name) =>
+  name.split(" ").map(part => part[0]).join("").toUpperCase().slice(0, 2);
+
 // ✅ CHANGED: removed { theme, setTheme } props — now using useTheme()
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme(); // ✅ ADDED
@@ -36,6 +42,8 @@ const Navbar = () => {
   const location = useLocation();
 
   const isDark = theme === "dark";
+  const displayName = getDisplayName(user);
+  const firstName = displayName.split(" ")[0];
 
   // Theme colors
   const tv = isDark ? {
@@ -130,7 +138,10 @@ const Navbar = () => {
           background: linear-gradient(135deg, ${tv.acc1}, ${tv.acc2});
           display: flex; align-items: center; justify-content: center;
           font-size: 11px; font-weight: 700; color: #fff;
-          flex-shrink: 0;
+          flex-shrink: 0; overflow: hidden;
+        }
+        .ev-nav-avatar-img {
+          width: 100%; height: 100%; object-fit: cover; display: block;
         }
         .ev-logout-nav {
           display: flex; align-items: center; gap: 6px;
@@ -252,10 +263,12 @@ const Navbar = () => {
                 className="ev-user-chip-nav"
               >
                 <div className="ev-nav-avatar" style={{ background: user.isAdmin ? "linear-gradient(135deg,#ff4d6d,#ff8c42)" : `linear-gradient(135deg,${tv.acc1},${tv.acc2})` }}>
-                  {user.isAdmin ? "A" : user.name?.charAt(0).toUpperCase()}
+                  {user.avatar
+                    ? <img className="ev-nav-avatar-img" src={user.avatar} alt={displayName} />
+                    : user.isAdmin ? "A" : getInitials(displayName)}
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 600, color: tv.fg, fontFamily: "'DM Sans',sans-serif" }}>
-                  {user.isAdmin ? "Admin" : `Hi, ${user.name?.split(" ")[0]}`}
+                  {user.isAdmin ? "Admin" : `Hi, ${firstName}`}
                 </span>
                 {user.isAdmin && <span className="ev-nav-badge" style={{ background: tv.acc1 }}>PRO</span>}
               </Link>
@@ -323,9 +336,11 @@ const Navbar = () => {
             <>
               <Link to={user.isAdmin ? "/auth/admin" : "/auth/myprofile"} onClick={() => setIsOpen(false)} className="ev-mob-link">
                 <div className="ev-nav-avatar" style={{ width: 30, height: 30, fontSize: 12 }}>
-                  {user.isAdmin ? "A" : user.name?.charAt(0).toUpperCase()}
+                  {user.avatar
+                    ? <img className="ev-nav-avatar-img" src={user.avatar} alt={displayName} />
+                    : user.isAdmin ? "A" : getInitials(displayName)}
                 </div>
-                {user.isAdmin ? "Admin Dashboard" : `My Profile (${user.name?.split(" ")[0]})`}
+                {user.isAdmin ? "Admin Dashboard" : `My Profile (${firstName})`}
               </Link>
               <button className="ev-mob-logout" onClick={handleLogout}><LogOut size={17} />Logout</button>
             </>

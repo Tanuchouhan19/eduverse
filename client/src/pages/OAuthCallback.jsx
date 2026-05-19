@@ -35,9 +35,14 @@ const OAuthCallback = () => {
 
       const user = {
         token,
-        _id:   payload.id,
-        name:  payload.name  || payload.displayName || "",
-        email: payload.email || "",
+        _id:      payload.id,
+        name:     payload.name || payload.displayName || "",
+        email:    payload.email || "",
+        phone:    payload.phone || "",
+        avatar:   payload.avatar || "",
+        provider: payload.provider || "",
+        isAdmin:  Boolean(payload.isAdmin),
+        isActive: payload.isActive !== false,
       };
 
       localStorage.setItem("user", JSON.stringify(user));
