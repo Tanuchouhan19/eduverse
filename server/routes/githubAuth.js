@@ -8,8 +8,8 @@ const router = express.Router();
 const GITHUB_CLIENT_ID     = process.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 const JWT_SECRET           = process.env.JWT_SECRET;
-const FRONTEND_URL         = process.env.FRONTEND_URL || "http://localhost:5173";
-const BACKEND_URL          = process.env.BACKEND_URL  || "http://localhost:5000";
+const FRONTEND_URL         = process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
+const BACKEND_URL          = process.env.BACKEND_URL  || "http://localhost:8080";
 
 /* Step 1: Redirect user to GitHub */
 router.get("/auth/github", (req, res) => {

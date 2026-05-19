@@ -9,7 +9,8 @@ const useAuthStatus = () => {
     const [checkingUser , setCheckingUser] = useState(true)
 
     useEffect(()=> {
-        user ? setUserExist(true) : setUserExist(false)
+        const storedUser = localStorage.getItem("user")
+        user || storedUser ? setUserExist(true) : setUserExist(false)
         setCheckingUser(false)
     },[user])
 

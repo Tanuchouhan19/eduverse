@@ -5,6 +5,16 @@ import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
 import { loginSuccess } from "../features/auth/authSlice";
 
+const decodeJwtPayload = (token) => {
+  const payload = token.split(".")[1];
+  if (!payload) throw new Error("Missing JWT payload");
+
+  const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+
+  return JSON.parse(atob(padded));
+};
+
 const OAuthCallback = () => {
   const navigate  = useNavigate();
   const dispatch  = useDispatch();
@@ -21,7 +31,7 @@ const OAuthCallback = () => {
     }
 
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      const payload = decodeJwtPayload(token);
 
       const user = {
         token,
@@ -35,10 +45,11 @@ const OAuthCallback = () => {
       dispatch(loginSuccess(user));
 
       navigate("/auth/myprofile", { replace: true });
-    } catch {
+    } catch (err) {
+      console.error("OAuth callback error:", err);
       navigate("/login?error=invalid_token", { replace: true });
     }
-  }, []);
+  }, [dispatch, login, navigate]);
 
   return <Loader />;
 };

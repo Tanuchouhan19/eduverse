@@ -534,12 +534,12 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    const base = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
     window.location.href = `${base}/auth/google`;
   };
 
   const handleGithubLogin = () => {
-    const base = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
     window.location.href = `${base}/auth/github`;
   };
 
@@ -547,6 +547,27 @@ const Login = () => {
     if (isSuccess && user) { login(user); navigate(redirectPath, { replace: true }); }
     if (isError && message) toast.error(message, { position: "top-center" });
   }, [isError, isSuccess, login, message, navigate, redirectPath, user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get("error");
+    const reason = params.get("reason");
+    if (!error) return;
+
+    const messages = {
+      google_config_missing: "Google login is not configured on the server.",
+      google_denied: "Google login was cancelled.",
+      google_email_missing: "Google did not return an email for this account.",
+      google_failed: "Google login failed. Please try again.",
+      invalid_token: "Login token could not be verified. Please try again.",
+      oauth_failed: "OAuth login failed. Please try again.",
+    };
+
+    const detail = reason ? ` (${reason})` : "";
+    toast.error(`${messages[error] || "Login failed. Please try again."}${detail}`, {
+      position: "top-center",
+    });
+  }, [location.search]);
 
   if (isLoading) return <Loader />;
 
