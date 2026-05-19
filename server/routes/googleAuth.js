@@ -22,10 +22,18 @@ const redirectWithError = (res, error, reason) => {
 
 const getOAuthFailureReason = (err) => {
   if (err.response?.data?.error) return err.response.data.error;
-  if (err.code === 11000) return "duplicate_user_field";
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyPattern || err.keyValue || {})[0];
+    return field ? `duplicate_${field}` : "duplicate_user_field";
+  }
   if (err.name === "ValidationError") return "user_validation_failed";
   if (err.message?.includes("secretOrPrivateKey")) return "jwt_secret_missing";
   return "server_error";
+};
+
+const getOAuthPhonePlaceholder = (provider, id, email) => {
+  const identity = id || email;
+  return `${provider}:${identity}`;
 };
 
 /* Step 1: Redirect user to Google */
@@ -69,7 +77,7 @@ router.get("/auth/google/callback", async (req, res) => {
     const profileRes = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
       headers: { Authorization: `Bearer ${access_token}` },
     });
-    const { email, name, picture } = profileRes.data;
+    const { id: googleId, email, name, picture } = profileRes.data;
 
     if (!email) return redirectWithError(res, "google_email_missing");
 
@@ -78,6 +86,7 @@ router.get("/auth/google/callback", async (req, res) => {
       user = await User.create({
         name,
         email,
+        phone:    getOAuthPhonePlaceholder("google", googleId, email),
         avatar:   picture,
         provider: "google",
       });

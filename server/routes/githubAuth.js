@@ -11,6 +11,11 @@ const JWT_SECRET           = process.env.JWT_SECRET;
 const FRONTEND_URL         = process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
 const BACKEND_URL          = process.env.BACKEND_URL  || "http://localhost:8080";
 
+const getOAuthPhonePlaceholder = (provider, id, email) => {
+  const identity = id || email;
+  return `${provider}:${identity}`;
+};
+
 /* Step 1: Redirect user to GitHub */
 router.get("/auth/github", (req, res) => {
   const params = new URLSearchParams({
@@ -51,6 +56,7 @@ router.get("/auth/github/callback", async (req, res) => {
       user = await User.create({
         name:     profile.name || profile.login,
         email,
+        phone:    getOAuthPhonePlaceholder("github", profile.id, email),
         avatar:   profile.avatar_url || "",
         provider: "github",
       });
