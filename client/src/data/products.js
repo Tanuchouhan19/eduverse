@@ -105,4 +105,4 @@ export const products = [
   }
 ];
 
-export const categories = ["All", "Electronics", "Books", "Furniture", "Stationery"];
+export const categories = ["All", "Electronics", "Books", "Furniture", "Stationery", "Clothing", "Other"];

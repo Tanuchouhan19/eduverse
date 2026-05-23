@@ -20,7 +20,7 @@ const listingSchema = new mongoose.Schema({
     },
     itemImage : {
          type : String ,
-        required : [true , "please Fill Prduct Image"]
+        default : ""
     },
     user : {
         type : mongoose.Schema.Types.ObjectId,
@@ -31,6 +31,14 @@ const listingSchema = new mongoose.Schema({
         type: String,
         default: "General", // ✅ true nahi — string default
         required: true
+    },
+    views: {
+        type: Number,
+        default: 0
+    },
+    saves: {
+        type: Number,
+        default: 0
     }
 },{
     timestamps : true

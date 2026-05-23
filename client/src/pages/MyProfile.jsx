@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from "react"
 import { useTheme } from "../context/ThemeContext"
-import { useAuth } from "../context/AuthContext"
+import { useSelector } from "react-redux"
+import axios from "axios"
+import { apiUrl } from "../config/api"
 
 const CAT = {
-  books:       { icon:"📚", ga:"#fde68a", gb:"#f59e0b" },
-  electronics: { icon:"⚡", ga:"#bae6fd", gb:"#0ea5e9" },
-  furniture:   { icon:"🪑", ga:"#bbf7d0", gb:"#22c55e" },
-  clothing:    { icon:"👕", ga:"#fbcfe8", gb:"#ec4899" },
-  other:       { icon:"📦", ga:"#e9d5ff", gb:"#a855f7" },
+  Books:       { icon:"📚", ga:"#fde68a", gb:"#f59e0b" },
+  Electronics: { icon:"⚡", ga:"#bae6fd", gb:"#0ea5e9" },
+  Furniture:   { icon:"🪑", ga:"#bbf7d0", gb:"#22c55e" },
+  Clothing:    { icon:"👕", ga:"#fbcfe8", gb:"#ec4899" },
+  Other:       { icon:"📦", ga:"#e9d5ff", gb:"#a855f7" },
 }
 
 function Counter({ to }) {
@@ -34,9 +36,69 @@ const providerLabel = (provider) => {
   return `${provider.charAt(0).toUpperCase()}${provider.slice(1)} account`
 }
 
+const getAuthOptions = (token) => ({
+  headers: { authorization: `Bearer ${token}` },
+})
+
+const formatTime = (date) => {
+  if (!date) return ""
+  const diff = Date.now() - new Date(date).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "Just now"
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+const normalizeCategory = (category) => {
+  const value = String(category || "Other").toLowerCase()
+  return Object.keys(CAT).find(key => key.toLowerCase() === value) || "Other"
+}
+
+const mapListing = (listing) => ({
+  id: listing._id,
+  _id: listing._id,
+  title: listing.title,
+  desc: listing.description,
+  price: Number(listing.prize) || 0,
+  cat: normalizeCategory(listing.category),
+  img: listing.itemImage || "",
+  views: Number(listing.views) || 0,
+  saves: Number(listing.saves) || 0,
+  badge: listing.isAvailable ? "Active" : "Sold",
+  isAvailable: listing.isAvailable,
+  createdAt: listing.createdAt,
+})
+
+const avatarColor = (text = "") => {
+  const colors = ["#f97316", "#8b5cf6", "#0ea5e9", "#ec4899", "#22c55e", "#f59e0b"]
+  const code = text.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  return colors[code % colors.length]
+}
+
+const mapMessage = (message) => {
+  const senderName = message.user?.name || message.user?.email?.split("@")[0] || "Buyer"
+  return {
+    id: message._id,
+    _id: message._id,
+    from: senderName,
+    av: senderName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
+    col: avatarColor(senderName),
+    text: message.text,
+    time: formatTime(message.createdAt),
+    unread: !message.isRead,
+    replied: Boolean(message.replyText),
+    replyText: message.replyText || "",
+    listingTitle: message.listing?.title || "Listing",
+    listingId: message.listing?._id || "",
+  }
+}
+
 export default function EduVerseProfile() {
   const { theme } = useTheme()
-  const { user } = useAuth()  // Get real logged-in user
+  const user = useSelector(state => state.auth.user)
   const D = theme === "dark"
 
   const getInitials = (name) => {
@@ -49,7 +111,7 @@ export default function EduVerseProfile() {
   const [messages,  setMessages]  = useState([])
   const [form,      setForm]      = useState({ title:"", desc:"", price:"", cat:"", img:"" })
   const [editId,    setEditId]    = useState(null)
-  const [filterCat, setFilterCat] = useState("all")
+  const [filterCat, setFilterCat] = useState("All")
   const [sortBy,    setSortBy]    = useState("newest")
   const [msgQ,      setMsgQ]      = useState("")
   const [replyTo,   setReplyTo]   = useState(null)
@@ -57,8 +119,7 @@ export default function EduVerseProfile() {
   const [toast,     setToast]     = useState(null)
   const [delId,     setDelId]     = useState(null)
   const [errs,      setErrs]      = useState({})
-  const [simName,   setSimName]   = useState("")
-  const [simMsg,    setSimMsg]    = useState("")
+  const [loadingData, setLoadingData] = useState(true)
   const toastTmr = useRef()
 
   const T = D ? {
@@ -95,28 +156,77 @@ export default function EduVerseProfile() {
     toastTmr.current = setTimeout(() => setToast(null), 3200)
   }
 
+  const loadProfileData = async () => {
+    if (!user?.token) {
+      setLoadingData(false)
+      return
+    }
+
+    try {
+      setLoadingData(true)
+      const options = getAuthOptions(user.token)
+      const [listingRes, messageRes] = await Promise.all([
+        axios.get(apiUrl("/api/product/mine"), options),
+        axios.get(apiUrl("/api/message/seller/inbox"), options),
+      ])
+      setListings(listingRes.data.map(mapListing))
+      setMessages(messageRes.data.map(mapMessage))
+    } catch (err) {
+      fire(err.response?.data?.message || "Could not load profile data", "error")
+    } finally {
+      setLoadingData(false)
+    }
+  }
+
+  useEffect(() => {
+    loadProfileData()
+  }, [user?.token])
+
   const validate = () => {
     const e = {}
     if (!form.title.trim()) e.title = "Title is required"
+    if (!form.desc.trim()) e.desc = "Description is required"
     if (!form.price || isNaN(form.price) || +form.price <= 0) e.price = "Enter a valid price"
     if (!form.cat) e.cat = "Select a category"
     return e
   }
 
-  const handleSubmit = ev => {
+  const handleSubmit = async ev => {
     ev.preventDefault()
     const e = validate()
     if (Object.keys(e).length) { setErrs(e); return }
     setErrs({})
-    if (editId) {
-      setListings(p => p.map(l => l.id === editId ? { ...l, ...form, price: +form.price } : l))
-      setEditId(null); fire("Listing updated!")
-    } else {
-      setListings(p => [{ id:Date.now(), ...form, price:+form.price, views:0, saves:0, badge:"New" }, ...p])
-      fire("Listing posted!")
+
+    if (!user?.token) {
+      fire("Please login again to post a listing", "error")
+      return
     }
-    setForm({ title:"", desc:"", price:"", cat:"", img:"" })
-    setTab("listings")
+
+    const payload = {
+      title: form.title.trim(),
+      description: form.desc.trim(),
+      prize: String(form.price),
+      category: form.cat,
+      itemImage: form.img.trim(),
+      isAvailable: true,
+    }
+
+    try {
+      const options = getAuthOptions(user.token)
+      if (editId) {
+        const response = await axios.put(apiUrl(`/api/product/${editId}`), payload, options)
+        setListings(p => p.map(l => l.id === editId ? mapListing(response.data) : l))
+        setEditId(null); fire("Listing updated!")
+      } else {
+        const response = await axios.post(apiUrl("/api/product"), payload, options)
+        setListings(p => [mapListing(response.data), ...p])
+        fire("Listing posted!")
+      }
+      setForm({ title:"", desc:"", price:"", cat:"", img:"" })
+      setTab("listings")
+    } catch (err) {
+      fire(err.response?.data?.message || "Listing could not be saved", "error")
+    }
   }
 
   const startEdit = l => {
@@ -125,28 +235,44 @@ export default function EduVerseProfile() {
     window.scrollTo({ top:0, behavior:"smooth" })
   }
 
-  const doDelete = id => {
-    setListings(p => p.filter(l => l.id !== id)); setDelId(null); fire("Listing removed","info")
+  const doDelete = async id => {
+    try {
+      await axios.delete(apiUrl(`/api/product/${id}`), getAuthOptions(user.token))
+      setListings(p => p.filter(l => l.id !== id))
+      setMessages(p => p.filter(m => m.listingId !== id))
+      setDelId(null)
+      fire("Listing removed","info")
+    } catch (err) {
+      fire(err.response?.data?.message || "Listing could not be removed", "error")
+    }
   }
 
-  const sendReply = id => {
+  const markRead = async id => {
+    setMessages(p => p.map(x => x.id === id ? { ...x, unread:false } : x))
+    try {
+      await axios.put(apiUrl(`/api/message/${id}/read`), {}, getAuthOptions(user.token))
+    } catch {
+      setMessages(p => p.map(x => x.id === id ? { ...x, unread:true } : x))
+    }
+  }
+
+  const sendReply = async id => {
     if (!replyText.trim()) return
-    setMessages(p => p.map(m => m.id===id ? { ...m, replied:true, unread:false } : m))
-    setReplyTo(null); setReplyText(""); fire("Reply sent!")
-  }
-
-  const simulateInquiry = () => {
-    const name = simName.trim() || "Anonymous Buyer"
-    const fallbacks = ["Is this still available?","Can you lower the price?","What's the condition?","Can I pick it up today?","Is warranty included?"]
-    const text = simMsg.trim() || fallbacks[Math.floor(Math.random() * fallbacks.length)]
-    const cols = ["#f97316","#8b5cf6","#0ea5e9","#ec4899","#22c55e","#f59e0b"]
-    const av = name.split(" ").map(n=>n[0]).join("").toUpperCase().slice(0,2)
-    setMessages(p => [{ id:Date.now(), from:name, av, col:cols[Math.floor(Math.random()*cols.length)], text, time:"Just now", unread:true }, ...p])
-    setSimName(""); setSimMsg(""); fire(`New inquiry from ${name}!`)
+    try {
+      const response = await axios.put(
+        apiUrl(`/api/message/${id}/reply`),
+        { replyText: replyText.trim() },
+        getAuthOptions(user.token)
+      )
+      setMessages(p => p.map(m => m.id===id ? mapMessage(response.data) : m))
+      setReplyTo(null); setReplyText(""); fire("Reply saved!")
+    } catch (err) {
+      fire(err.response?.data?.message || "Reply could not be saved", "error")
+    }
   }
 
   const unread   = messages.filter(m => m.unread).length
-  const shown    = listings.filter(l => filterCat==="all" || l.cat===filterCat)
+  const shown    = listings.filter(l => filterCat==="All" || l.cat===filterCat)
     .sort((a,b) => sortBy==="price-asc" ? a.price-b.price : sortBy==="price-desc" ? b.price-a.price : b.id-a.id)
   const filtMsgs = messages.filter(m =>
     m.from.toLowerCase().includes(msgQ.toLowerCase()) ||
@@ -487,9 +613,9 @@ export default function EduVerseProfile() {
             {tab==="listings" && (
               <div className="aup">
                 <div style={{display:"flex",gap:7,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
-                  {["all","books","electronics","furniture","clothing","other"].map(c=>(
+                  {["All", ...Object.keys(CAT)].map(c=>(
                     <button key={c} className={`ev-chip${filterCat===c?" on":""}`} onClick={()=>setFilterCat(c)}>
-                      {CAT[c]?CAT[c].icon+" ":""}{c==="all"?"All":c.charAt(0).toUpperCase()+c.slice(1)}
+                      {CAT[c]?CAT[c].icon+" ":""}{c}
                     </button>
                   ))}
                   <select value={sortBy} onChange={e=>setSortBy(e.target.value)} className="ev-inp"
@@ -501,20 +627,25 @@ export default function EduVerseProfile() {
                 </div>
                 <p style={{fontSize:13,color:T.tx3,marginBottom:16,fontWeight:500}}>
                   Showing <strong style={{color:T.tx}}>{shown.length}</strong> listing{shown.length!==1?"s":""}
-                  {filterCat!=="all"?` in ${filterCat}`:""}
+                  {filterCat!=="All"?` in ${filterCat}`:""}
                 </p>
 
-                {shown.length===0 ? (
+                {loadingData ? (
+                  <div className="ev-empty">
+                    <span className="ev-empty-icon">⌛</span>
+                    <p className="ev-empty-title">Loading your listings</p>
+                  </div>
+                ) : shown.length===0 ? (
                   <div className="ev-empty">
                     <span className="ev-empty-icon">📭</span>
                     <p className="ev-empty-title">No listings yet</p>
                     <p className="ev-empty-sub">Post your first item to get started</p>
-                    <button className="btn-primary" onClick={()=>{setFilterCat("all");setTab("add")}}>Post a Listing</button>
+                    <button className="btn-primary" onClick={()=>{setFilterCat("All");setTab("add")}}>Post a Listing</button>
                   </div>
                 ) : (
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))",gap:16}}>
                     {shown.map((l,i)=>{
-                      const m = CAT[l.cat]||CAT.other
+                      const m = CAT[l.cat]||CAT.Other
                       return (
                         <div key={l.id} className="ev-lcard aup" style={{animationDelay:`${i*.05}s`}}>
                           <div style={{position:"relative",overflow:"hidden"}}>
@@ -568,6 +699,7 @@ export default function EduVerseProfile() {
                   <div>
                     <label style={lbl}>Description</label>
                     <textarea className="ev-inp" style={{...inp,minHeight:88}} rows={3} placeholder="Condition, features, reason for selling…" value={form.desc} onChange={e=>setForm(p=>({...p,desc:e.target.value}))} />
+                    {errs.desc && <p style={errS}>⚠ {errs.desc}</p>}
                   </div>
                   <div className="ev-form-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
                     <div>
@@ -633,7 +765,7 @@ export default function EduVerseProfile() {
                     listings.reduce((a,l)=>{ a[l.cat]=a[l.cat]||{count:0,views:0,val:0}; a[l.cat].count++; a[l.cat].views+=l.views; a[l.cat].val+=l.price; return a },{})
                   ).map(([cat,s],i)=>{
                     const pct = Math.round((s.count/listings.length)*100)
-                    const m = CAT[cat]||CAT.other
+                    const m = CAT[cat]||CAT.Other
                     return (
                       <div key={cat} className="aup" style={{marginBottom:20,animationDelay:`${i*.06}s`}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
@@ -676,7 +808,7 @@ export default function EduVerseProfile() {
                   </div>
                 ) : filtMsgs.map(m=>(
                   <div key={m.id} className={`ev-msg ${m.unread?"unread":"read"}`}
-                    onClick={()=>setMessages(p=>p.map(x=>x.id===m.id?{...x,unread:false}:x))}>
+                    onClick={()=>markRead(m.id)}>
                     <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                       <div style={{width:38,height:38,borderRadius:"50%",background:m.col,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:"#fff",flexShrink:0,boxShadow:`0 2px 8px ${m.col}55`}}>{m.av}</div>
                       <div style={{flex:1,minWidth:0}}>
@@ -684,8 +816,9 @@ export default function EduVerseProfile() {
                           <span style={{fontWeight:700,fontSize:13.5,color:T.tx}}>{m.from}</span>
                           <span style={{fontSize:11,color:T.tx3,flexShrink:0,marginLeft:8}}>{m.time}</span>
                         </div>
+                        <p style={{fontSize:11,color:T.tx3,marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>For: {m.listingTitle}</p>
                         <p style={{fontSize:13,color:T.tx2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.text}</p>
-                        {m.replied && <span style={{fontSize:11,color:T.pos,fontWeight:700}}>✓ Replied</span>}
+                        {m.replied && <span style={{fontSize:11,color:T.pos,fontWeight:700}}>✓ Replied: {m.replyText}</span>}
                         <button onClick={e=>{e.stopPropagation();setReplyTo(replyTo===m.id?null:m.id);setReplyText("")}}
                           style={{marginTop:8,padding:"4px 12px",borderRadius:7,background:T.acBg,color:T.ac,border:`1px solid ${T.acBd}`,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",transition:"all .18s"}}>
                           {replyTo===m.id?"✕ Cancel":"↩ Reply"}
@@ -702,12 +835,8 @@ export default function EduVerseProfile() {
                 ))}
               </div>
 
-              {/* Simulate buyer inquiry */}
               <div style={{borderTop:`1px solid ${T.bd}`,paddingTop:14}}>
-                <label style={{...lbl,marginBottom:10}}>Simulate Buyer Inquiry</label>
-                <input className="ev-inp" style={{...inp,marginBottom:8}} placeholder="Buyer name" value={simName} onChange={e=>setSimName(e.target.value)} />
-                <input className="ev-inp" style={{...inp,marginBottom:10}} placeholder="Message (optional)" value={simMsg} onChange={e=>setSimMsg(e.target.value)} />
-                <button className="btn-primary" style={{width:"100%"}} onClick={simulateInquiry}>Send Inquiry</button>
+                <p style={{fontSize:12,color:T.tx3,lineHeight:1.55}}>Real buyer messages sent from listing pages appear here and stay saved.</p>
               </div>
             </div>
           </div>

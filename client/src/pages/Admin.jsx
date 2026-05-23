@@ -789,7 +789,11 @@ const Admin = () => {
               }
               <div style={{flex:1,minWidth:0}}>
                 <p style={{fontSize:13,fontWeight:700,color:th.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.title}</p>
-                <p style={{fontSize:11,color:th.textMuted,marginTop:2}}>{l.user?.name||"—"} · {fmtDate(l.createdAt)}</p>
+                <p style={{fontSize:11,color:th.textMuted,marginTop:2}}>{l.user?.name||"—"} · {l.user?.email||"No email"}</p>
+                <p style={{fontSize:11,color:th.textMuted,marginTop:2}}>{l.category||"General"} · {fmtDate(l.createdAt)}</p>
+                <p style={{fontSize:11,color:th.textSec,marginTop:4,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>
+                  {l.description || "No description"}
+                </p>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginTop:6}}>
                   <span style={{fontSize:13,fontWeight:700,color:accentA}}>₹{l.prize?.toLocaleString()??"—"}</span>
                   <Badge label={l.isAvailable?"Available":"Sold Out"} type={l.isAvailable?"green":"red"} th={th}/>
@@ -810,10 +814,10 @@ const Admin = () => {
         /* ── DESKTOP: table ── */
         <div style={{background:th.card,border:`1px solid ${th.cardBdr}`,borderRadius:16,overflow:"hidden",boxShadow:th.shadow}}>
           <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",minWidth:650}}>
+            <table style={{width:"100%",borderCollapse:"collapse",minWidth:980}}>
               <thead>
                 <tr style={{background:th.tableHead}}>
-                  {["","Title","Seller","Price","Date","Status","Action"].map(h => (
+                  {["","Listing","Seller","Category","Price","Date","Status","Action"].map(h => (
                     <th key={h} style={thHeader}>{h}</th>
                   ))}
                 </tr>
@@ -829,8 +833,17 @@ const Admin = () => {
                         : <div style={{width:46,height:46,borderRadius:10,background:th.tableHead,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="photo" size={18} style={{color:th.textMuted}}/></div>
                       }
                     </td>
-                    <td style={{padding:"12px 16px",fontSize:13,fontWeight:600,color:th.text}}>{l.title}</td>
-                    <td style={{padding:"12px 16px",fontSize:13,color:th.textSec}}>{l.user?.name||"—"}</td>
+                    <td style={{padding:"12px 16px",minWidth:230}}>
+                      <p style={{fontSize:13,fontWeight:700,color:th.text,marginBottom:3}}>{l.title}</p>
+                      <p style={{fontSize:12,color:th.textSec,lineHeight:1.45,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>
+                        {l.description || "No description"}
+                      </p>
+                    </td>
+                    <td style={{padding:"12px 16px",minWidth:190}}>
+                      <p style={{fontSize:13,fontWeight:600,color:th.text}}>{l.user?.name||"—"}</p>
+                      <p style={{fontSize:11,color:th.textMuted,marginTop:2}}>{l.user?.email||"No email"}</p>
+                    </td>
+                    <td style={{padding:"12px 16px",fontSize:13,color:th.textSec}}>{l.category || "General"}</td>
                     <td style={{padding:"12px 16px",fontSize:13,fontWeight:700,color:accentA}}>₹{l.prize?.toLocaleString()??"—"}</td>
                     <td style={{padding:"12px 16px",fontSize:12,color:th.textMuted}}>{fmtDate(l.createdAt)}</td>
                     <td style={{padding:"12px 16px"}}><Badge label={l.isAvailable?"Available":"Sold Out"} type={l.isAvailable?"green":"red"} th={th}/></td>

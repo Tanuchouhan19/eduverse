@@ -5,14 +5,23 @@ import { useEffect, useState } from "react";
 import { getProducts } from "../features/products/productSlice.js";
 import Loader from "../components/Loader.jsx";
 import { toast } from "react-toastify";
+import axios from "axios";
+import { apiUrl } from "../config/api.js";
+
+const isOAuthPhonePlaceholder = (phone = "") => /^(google|github):/.test(String(phone));
 
 const ProductDetail = () => {
   const { pid } = useParams();                              // ✅ pid — App.jsx se match
   const dispatch = useDispatch();
   const { allProducts, productLoading, productError, productSuccess, productErrorMessage} = useSelector((state) => state.products);
-  const product = allProducts?.find((p) => p._id === pid); // ✅ _id se find
+  const { user } = useSelector((state) => state.auth);
+  const fallbackProduct = allProducts?.find((p) => p._id === pid); // ✅ _id se find
+  const [detailProduct, setDetailProduct] = useState(null);
+  const product = detailProduct || fallbackProduct;
   const [wished, setWished] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     if (!allProducts || allProducts.length === 0) {
@@ -27,10 +36,50 @@ const ProductDetail = () => {
     
   }, [pid ,productError , productErrorMessage ]);
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await axios.get(apiUrl(`/api/product/${pid}`));
+        setDetailProduct(response.data);
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Unable to load listing", { position: "top-center" });
+      }
+    };
+
+    fetchProduct();
+  }, [pid]);
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleContactSeller = async () => {
+    if (!user?.token) {
+      toast.error("Please login to contact the seller", { position: "top-center" });
+      return;
+    }
+
+    if (!messageText.trim()) {
+      toast.error("Please write a message first", { position: "top-center" });
+      return;
+    }
+
+    try {
+      setSendingMessage(true);
+      await axios.post(
+        apiUrl(`/api/message/${pid}`),
+        { text: messageText.trim() },
+        { headers: { authorization: `Bearer ${user.token}` } }
+      );
+      setMessageText("");
+      toast.success("Message sent to seller", { position: "top-center" });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Message could not be sent", { position: "top-center" });
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   if (!product) {
@@ -56,6 +105,9 @@ const ProductDetail = () => {
   const initials = product.user?.name
     ? product.user.name.slice(0, 2).toUpperCase()
     : "NA";
+  const sellerPhone = product.user?.phone && !isOAuthPhonePlaceholder(product.user.phone)
+    ? product.user.phone
+    : "Not provided";
 
   return (
     <div className="min-h-screen py-10 px-4">
@@ -75,11 +127,17 @@ const ProductDetail = () => {
           {/* LEFT — Image */}
           <div className="space-y-4">
             <div className="relative mt-20 mr-15 rounded-3xl overflow-hidden bg-white border-2 border-purple-400/30 aspect-square flex items-center justify-center group hover:border-purple-400/70 transition-all duration-500">
-              <img
-                src={product.itemImage}
-                alt={product.title}
-                className="w-full h-full object-contain p-6 transition-transform duration-700 group-hover:scale-105"
-              />
+              {product.itemImage ? (
+                <img
+                  src={product.itemImage}
+                  alt={product.title}
+                  className="w-full h-full object-contain p-6 transition-transform duration-700 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-purple-50 text-purple-300">
+                  <ShoppingBag className="w-20 h-20" />
+                </div>
+              )}
               <div className="absolute inset-0 bg-white/0 group-hover:bg-black/10 transition-all duration-500" />
 
               {/* Availability */}
@@ -200,15 +258,25 @@ const ProductDetail = () => {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground bg-white/80 rounded-xl px-4 py-2.5 hover:bg-white transition-colors duration-200">
                   <Phone className="w-4 h-4 text-purple-500 flex-shrink-0" />
-                  <span>{product.user?.phone}</span>
+                  <span>{sellerPhone}</span>
                 </div>
               </div>
             </div>
 
             {/* CTA Buttons */}
             <div className="space-y-3">
-              <button className="w-full py-4 rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg">
-                Contact Seller
+              <textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Ask about availability, condition, pickup time..."
+                className="w-full min-h-24 rounded-2xl border border-purple-200 bg-white/80 px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100"
+              />
+              <button
+                onClick={handleContactSeller}
+                disabled={sendingMessage}
+                className="w-full py-4 rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {sendingMessage ? "Sending..." : "Contact Seller"}
               </button>
               <button
                 onClick={() => setWished(!wished)}

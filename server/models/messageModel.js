@@ -17,6 +17,21 @@ const messageSchema = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Listing',
         required : true
+    },
+
+    isRead : {
+        type : Boolean,
+        default : false
+    },
+
+    replyText : {
+        type : String,
+        default : ""
+    },
+
+    repliedAt : {
+        type : Date,
+        default : null
     }
 
 },{
