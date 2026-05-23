@@ -572,16 +572,16 @@ const Navbar = () => {
                       </Link>
                       <Link to="/auth/marketplace" className="evn-drop-item">
                         <ShoppingBag size={14} style={{ color: t.acc }} />
-                        My Courses
+                        Marketplace
                       </Link>
                       <Link to="/auth/events" className="evn-drop-item">
                         <Calendar size={14} style={{ color: t.acc }} />
                         Events
                       </Link>
-                      <Link to="/auth/progress" className="evn-drop-item">
+                      {/* <Link to="/auth/progress" className="evn-drop-item">
                         <TrendingUp size={14} style={{ color: t.acc }} />
                         Progress
-                      </Link>
+                      </Link> */}
                       <div className="evn-drop-sep" />
                       <button className="evn-drop-logout" onClick={handleLogout}>
                         <LogOut size={14} />
